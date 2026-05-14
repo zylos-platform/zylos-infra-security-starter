@@ -32,11 +32,13 @@ jobs:
           java-version: "25"
           cache: maven
           server-id: github
-          server-username: GITHUB_ACTOR
-          server-password: GITHUB_TOKEN
+          server-username: ${{ github.actor }}
+          server-password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Verify formatting (Spotless)
         run: ./mvnw -B -ntp spotless:check
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Compile
         run: ./mvnw -B -ntp compile

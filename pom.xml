@@ -130,6 +130,19 @@
     </dependency>
   </dependencies>
 
+  <repositories>
+    <repository>
+      <releases>
+        <enabled>true</enabled>
+      </releases>
+      <snapshots>
+        <enabled>true</enabled>
+      </snapshots>
+      <id>github</id>
+      <url>https://maven.pkg.github.com/zylos-platform/zylos-service-parent</url>
+    </repository>
+  </repositories>
+
   <build>
     <plugins>
       <plugin>
