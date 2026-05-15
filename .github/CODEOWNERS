@@ -1,0 +1,13 @@
+# Default reviewers for all changes
+
+-       @zylos-platform/Kamesh Chathuranga
+
+# Security-sensitive areas
+
+/src/main/java/app/zylos/security/jwt/ @zylos-platform/Kamesh Chathuranga @zylos-platform/security-reviewers
+/src/main/java/app/zylos/security/opa/ @zylos-platform/Kamesh Chathuranga @zylos-platform/security-reviewers
+/src/main/java/app/zylos/security/actor/ @zylos-platform/Kamesh Chathuranga @zylos-platform/security-reviewers
+
+# ADRs require platform-team
+
+/docs/adr/ @zylos-platform/Kamesh Chathuranga
