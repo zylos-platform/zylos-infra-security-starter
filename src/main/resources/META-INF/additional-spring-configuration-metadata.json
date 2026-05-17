@@ -1,0 +1,80 @@
+{
+  "groups": [
+    {
+      "name": "zylos.security",
+      "type": "app.zylos.security.properties.ZylosSecurityProperties",
+      "description": "Configuration for the Zylos security starter."
+    },
+    {
+      "name": "zylos.security.jwks-cache",
+      "type": "app.zylos.security.properties.ZylosSecurityProperties$JwksCacheProperties",
+      "description": "JWKS cache settings."
+    },
+    {
+      "name": "zylos.security.actor-chains",
+      "type": "app.zylos.security.properties.ZylosSecurityProperties$ActorChainsProperties",
+      "description": "Actor-chain validator settings."
+    },
+    {
+      "name": "zylos.security.opa",
+      "type": "app.zylos.security.properties.ZylosSecurityProperties$OpaProperties",
+      "description": "OPA endpoint and decision-cache settings."
+    }
+  ],
+  "properties": [
+    {
+      "name": "zylos.security.issuer-uri",
+      "type": "java.lang.String",
+      "description": "The exact iss value the realm publishes. Tokens with a different issuer are rejected.",
+      "sourceType": "app.zylos.security.properties.ZylosSecurityProperties"
+    },
+    {
+      "name": "zylos.security.expected-audience",
+      "type": "java.lang.String",
+      "description": "The aud claim value this service identifies as. No multi-audience tolerance.",
+      "sourceType": "app.zylos.security.properties.ZylosSecurityProperties"
+    },
+    {
+      "name": "zylos.security.clock-skew",
+      "type": "java.time.Duration",
+      "description": "Permissive window for exp/nbf validation. Default: 30s.",
+      "defaultValue": "30s",
+      "sourceType": "app.zylos.security.properties.ZylosSecurityProperties"
+    },
+    {
+      "name": "zylos.security.jwks-cache.ttl",
+      "type": "java.time.Duration",
+      "description": "JWKS cache TTL. Default: 1h.",
+      "defaultValue": "1h"
+    },
+    {
+      "name": "zylos.security.jwks-cache.max-entries",
+      "type": "java.lang.Integer",
+      "description": "Maximum number of JWKS-cache entries. Default: 16.",
+      "defaultValue": 16
+    },
+    {
+      "name": "zylos.security.actor-chains.location",
+      "type": "java.lang.String",
+      "description": "Location of the actor-chains.yaml file. Default: classpath:actor-chains.yaml.",
+      "defaultValue": "classpath:actor-chains.yaml"
+    },
+    {
+      "name": "zylos.security.opa.endpoint",
+      "type": "java.net.URI",
+      "description": "Base URL of the OPA server."
+    },
+    {
+      "name": "zylos.security.opa.cache-ttl",
+      "type": "java.time.Duration",
+      "description": "TTL for cached OPA decisions. Default: 30s.",
+      "defaultValue": "30s"
+    },
+    {
+      "name": "zylos.security.opa.cache-max-size",
+      "type": "java.lang.Integer",
+      "description": "Max entries in the OPA decision cache. Default: 50000.",
+      "defaultValue": 50000
+    }
+  ]
+}
