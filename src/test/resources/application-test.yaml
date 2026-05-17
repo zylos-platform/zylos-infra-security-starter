@@ -1,0 +1,6 @@
+# Default test configuration. Overridden per-test via ApplicationContextRunner.
+zylos:
+  security:
+    issuer-uri: http://localhost/realms/zylos
+    expected-audience: zylos-internal-test
+    clock-skew: 30s

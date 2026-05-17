@@ -13,10 +13,10 @@ import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.security.oauth2.core.OAuth2TokenValidatorResult;
 import org.springframework.security.oauth2.jwt.Jwt;
 
-class JwtAudienceValidatorTest {
+class AudienceValidatorTest {
 
     private static final String EXPECTED = "zylos-internal-hello";
-    private final JwtAudienceValidator validator = new JwtAudienceValidator(EXPECTED);
+    private final AudienceValidator validator = new AudienceValidator(EXPECTED);
 
     private static Jwt jwtWithAudience(List<String> audiences) {
         Jwt.Builder builder = Jwt.withTokenValue("test-token")
