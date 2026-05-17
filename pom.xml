@@ -5,7 +5,7 @@
   <parent>
     <groupId>app.zylos</groupId>
     <artifactId>zylos-service-parent</artifactId>
-    <version>0.1.0</version>
+    <version>0.2.0</version>
     <relativePath/>
   </parent>
 
@@ -94,6 +94,11 @@
     </dependency>
 
     <dependency>
+      <groupId>org.springframework</groupId>
+      <artifactId>spring-context-support</artifactId>
+    </dependency>
+
+    <dependency>
       <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot-starter-security-oauth2-resource-server-test</artifactId>
       <scope>test</scope>
@@ -113,16 +118,16 @@
       <artifactId>spring-boot-starter-webmvc-test</artifactId>
       <scope>test</scope>
     </dependency>
-    <!--        <dependency>-->
-    <!--            <groupId>org.wiremock</groupId>-->
-    <!--            <artifactId>wiremock-standalone</artifactId>-->
-    <!--            <scope>test</scope>-->
-    <!--        </dependency>-->
-    <!--        <dependency>-->
-    <!--            <groupId>org.testcontainers</groupId>-->
-    <!--            <artifactId>junit-jupiter</artifactId>-->
-    <!--            <scope>test</scope>-->
-    <!--        </dependency>-->
+    <dependency>
+      <groupId>org.wiremock</groupId>
+      <artifactId>wiremock-standalone</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.junit.jupiter</groupId>
+      <artifactId>junit-jupiter</artifactId>
+      <scope>test</scope>
+    </dependency>
     <dependency>
       <groupId>com.tngtech.archunit</groupId>
       <artifactId>archunit-junit5</artifactId>
