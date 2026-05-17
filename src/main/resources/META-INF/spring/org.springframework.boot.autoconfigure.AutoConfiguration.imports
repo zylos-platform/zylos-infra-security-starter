@@ -1,1 +1,5 @@
 # zylos-infra-security-starter auto-configuration entries.
+
+app.zylos.security.autoconfigure.ZylosSecurityCommonAutoConfiguration
+app.zylos.security.autoconfigure.ZylosSecurityServletAutoConfiguration
+app.zylos.security.autoconfigure.ZylosSecurityReactiveAutoConfiguration
