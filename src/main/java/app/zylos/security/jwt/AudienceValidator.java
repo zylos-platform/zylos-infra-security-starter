@@ -6,7 +6,6 @@ import org.springframework.security.oauth2.core.OAuth2Error;
 import org.springframework.security.oauth2.core.OAuth2TokenValidator;
 import org.springframework.security.oauth2.core.OAuth2TokenValidatorResult;
 import org.springframework.security.oauth2.jwt.Jwt;
-import org.springframework.security.oauth2.jwt.JwtValidators;
 
 /**
  * Validates that the JWT's {@code aud} claim contains the configured expected
@@ -21,7 +20,7 @@ import org.springframework.security.oauth2.jwt.JwtValidators;
  * convention for surfacing claim-validation failures to actuator and audit
  * pipelines.
  */
-public record JwtAudienceValidator(String expectedAudience) implements OAuth2TokenValidator<Jwt> {
+public record AudienceValidator(String expectedAudience) implements OAuth2TokenValidator<Jwt> {
 
     private static final String ERROR_CODE = "invalid_audience";
     private static final String ERROR_DESCRIPTION_TEMPLATE =
@@ -35,8 +34,7 @@ public record JwtAudienceValidator(String expectedAudience) implements OAuth2Tok
             return OAuth2TokenValidatorResult.success();
         }
 
-        OAuth2Error error = new OAuth2Error(
-                ERROR_CODE, ERROR_DESCRIPTION_TEMPLATE.formatted(expectedAudience), JwtValidators.class.getName());
+        OAuth2Error error = new OAuth2Error(ERROR_CODE, ERROR_DESCRIPTION_TEMPLATE.formatted(expectedAudience), null);
 
         return OAuth2TokenValidatorResult.failure(error);
     }
