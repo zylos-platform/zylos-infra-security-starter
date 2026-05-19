@@ -47,6 +47,10 @@ The full validator chain (assembled by both auto-configurations):
 3. `AudienceValidator(expectedAudience)` — `aud == self`
 4. Any extra `OAuth2TokenValidator<Jwt>` beans in the context
 
+> NOTE: Any `ZylosJwtValidatorCustomizer` beans in the application context, invoked in `@Order` precedence on the
+> mutable list before it's wrapped in the delegator. This is a named extension contract rather than an open-ended
+> `OAuth2TokenValidator<Jwt>` slurp; customizers can add, remove, replace, or reorder entries.
+
 Wrapped by `DelegatingOAuth2TokenValidator` and set on the decoder via `setJwtValidator(...)`.
 
 ## Rationale

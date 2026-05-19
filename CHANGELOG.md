@@ -9,14 +9,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- JWT validation core: `AudienceValidator`, `UnknownKidRefreshingJwtDecoder`,
-  `UnknownKidRefreshingReactiveJwtDecoder`, `ZylosSecurityProperties`,
-  servlet/reactive/common auto-configurations.
-- IDE support metadata for `zylos.security.*` configuration keys.
-- ADR 0002: JWT validation chain design.
+- Actor-chain authorization: `ActChainExtractor`, `ActorChainsLoader`,
+  `ActorChainsRegistry`, servlet + reactive `AuthorizationManager`
+  implementations.
+- `actor-chains.yaml` schema with path-pattern rules, permitted chains,
+  `publicAccess` flag, and defaults.
+- `zylos.security.actor-chains.enabled` opt-out property.
+- ADR 0003: Actor chain design.
 
-## Initial release
+### Earlier in this release cycle (already merged)
 
-### Added
-
-- Initial repo scaffolding.
+- JWT validation core
+- Repo scaffolding 
