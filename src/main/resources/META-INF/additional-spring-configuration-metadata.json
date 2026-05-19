@@ -75,6 +75,12 @@
       "type": "java.lang.Integer",
       "description": "Max entries in the OPA decision cache. Default: 50000.",
       "defaultValue": 50000
+    },
+    {
+      "name": "zylos.security.actor-chains.enabled",
+      "type": "java.lang.Boolean",
+      "description": "Whether the actor-chains registry is loaded and the authorization manager is exposed. Defaults to true; set false to disable when the service has no chain requirements.",
+      "defaultValue": true
     }
   ]
 }

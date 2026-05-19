@@ -1,7 +1,16 @@
 package app.zylos.security.autoconfigure;
 
+import app.zylos.security.actor.ActorChainAuthorizationManager;
+import app.zylos.security.actor.ActorChainEvaluator;
+import app.zylos.security.jwt.AudienceValidator;
+import app.zylos.security.jwt.UnknownKidRefreshingJwtDecoder;
+import app.zylos.security.jwt.ZylosJwtValidatorCustomizer;
+import app.zylos.security.jwt.ZylosJwtValidatorFactory;
+import app.zylos.security.properties.ZylosSecurityProperties;
+import io.micrometer.core.instrument.MeterRegistry;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnWebApplication;
@@ -9,15 +18,6 @@ import org.springframework.cache.Cache;
 import org.springframework.context.annotation.Bean;
 import org.springframework.security.oauth2.core.OAuth2TokenValidator;
 import org.springframework.security.oauth2.jwt.*;
-
-import app.zylos.security.jwt.AudienceValidator;
-import app.zylos.security.jwt.UnknownKidRefreshingJwtDecoder;
-import app.zylos.security.jwt.ZylosJwtValidatorCustomizer;
-import app.zylos.security.jwt.ZylosJwtValidatorFactory;
-import app.zylos.security.properties.ZylosSecurityProperties;
-
-import io.micrometer.core.instrument.MeterRegistry;
-import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 
 /**
  * Servlet-stack autoconfiguration. Active when {@code spring-boot-starter-web}
@@ -46,17 +46,9 @@ import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 public class ZylosSecurityServletAutoConfiguration {
 
     @Bean
-    @ConditionalOnMissingBean
-    public MeterRegistry zylosSecurityFallbackMeterRegistry() {
-        // Services should already provide a Micrometer registry; this is a fallback
-        // so the starter doesn't break in tests / minimal setups.
-        return new SimpleMeterRegistry();
-    }
-
-    @Bean
     @ConditionalOnMissingBean(name = "zylosJwtValidator")
     public OAuth2TokenValidator<Jwt> zylosJwtValidator(
-            ZylosSecurityProperties properties, ObjectProvider<ZylosJwtValidatorCustomizer> customizers) {
+        ZylosSecurityProperties properties, ObjectProvider<ZylosJwtValidatorCustomizer> customizers) {
 
         return ZylosJwtValidatorFactory.create(properties, customizers);
     }
@@ -64,16 +56,23 @@ public class ZylosSecurityServletAutoConfiguration {
     @Bean
     @ConditionalOnMissingBean
     public JwtDecoder jwtDecoder(
-            ZylosSecurityProperties properties,
-            Cache jwksCache,
-            OAuth2TokenValidator<Jwt> zylosJwtValidator,
-            MeterRegistry meterRegistry) {
+        ZylosSecurityProperties properties,
+        Cache jwksCache,
+        OAuth2TokenValidator<Jwt> zylosJwtValidator,
+        MeterRegistry meterRegistry) {
         NimbusJwtDecoder nimbus = NimbusJwtDecoder.withIssuerLocation(properties.issuerUri())
-                .cache(jwksCache)
-                .build();
+            .cache(jwksCache)
+            .build();
 
         nimbus.setJwtValidator(zylosJwtValidator);
 
         return new UnknownKidRefreshingJwtDecoder(nimbus, jwksCache, properties.issuerUri(), meterRegistry);
+    }
+
+    @Bean
+    @ConditionalOnMissingBean
+    @ConditionalOnBean(ActorChainEvaluator.class)
+    public ActorChainAuthorizationManager actorChainAuthorizationManager(ActorChainEvaluator evaluator) {
+        return new ActorChainAuthorizationManager(evaluator);
     }
 }
