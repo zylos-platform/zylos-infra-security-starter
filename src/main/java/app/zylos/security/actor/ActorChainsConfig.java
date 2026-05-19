@@ -1,4 +1,36 @@
 package app.zylos.security.actor;
 
-public class ActorChainsConfig {
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotNull;
+
+import java.util.List;
+
+/**
+ * Root record of {@code actor-chains.yaml} — the full per-service chain
+ * policy.
+ *
+ * @param defaults  defaults applied when no endpoint rule matches; never
+ *                  {@code null} (a strict default is substituted in the canonical
+ *                  constructor)
+ * @param endpoints per-endpoint rules, evaluated in declaration order;
+ *                  never {@code null} (defaults to empty list)
+ */
+public record ActorChainsConfig(@NotNull @Valid ChainDefaults defaults, @Valid List<EndpointChainRule> endpoints) {
+
+    public ActorChainsConfig {
+        if (defaults == null) {
+            defaults = ChainDefaults.strict();
+        }
+
+        if (endpoints == null) {
+            endpoints = List.of();
+        }
+    }
+
+    /**
+     * Convenience for fully-default config (no endpoint rules; strict defaults).
+     */
+    public static ActorChainsConfig empty() {
+        return new ActorChainsConfig(ChainDefaults.strict(), List.of());
+    }
 }
