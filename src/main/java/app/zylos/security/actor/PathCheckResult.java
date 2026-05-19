@@ -1,4 +1,12 @@
 package app.zylos.security.actor;
 
-public record PathCheckResult() {
+import org.springframework.security.authorization.AuthorizationDecision;
+
+public record PathCheckResult(
+    AuthorizationDecision immediateDecision,
+    EndpointChainRule requiredRule
+) {
+    public boolean requiresAuthentication() {
+        return immediateDecision == null;
+    }
 }
