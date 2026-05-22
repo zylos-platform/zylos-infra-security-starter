@@ -1,0 +1,17 @@
+defaults:
+  rejectIfNoPathMatch: true
+  allowEmptyChain: false
+  maxChainDepth: 5
+
+endpoints:
+  - pathPattern: /api/v1/hello/public
+    publicAccess: true
+
+  - pathPattern: /api/v1/hello/me
+    permittedChains:
+      - [ zylos-gateway ]
+      - [ zylos-mobile-bff, zylos-gateway ]
+
+  - pathPattern: /api/v1/hello/seller/**
+    permittedChains:
+      - [ zylos-gateway ]
