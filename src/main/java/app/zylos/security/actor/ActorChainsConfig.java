@@ -1,9 +1,10 @@
 package app.zylos.security.actor;
 
-import jakarta.validation.Valid;
-import jakarta.validation.constraints.NotNull;
-
 import java.util.List;
+
+import jakarta.validation.Valid;
+
+import org.jspecify.annotations.Nullable;
 
 /**
  * Root record of {@code actor-chains.yaml} — the full per-service chain
@@ -15,7 +16,9 @@ import java.util.List;
  * @param endpoints per-endpoint rules, evaluated in declaration order;
  *                  never {@code null} (defaults to empty list)
  */
-public record ActorChainsConfig(@NotNull @Valid ChainDefaults defaults, @Valid List<EndpointChainRule> endpoints) {
+public record ActorChainsConfig(
+        @Nullable @Valid ChainDefaults defaults,
+        @Nullable @Valid List<EndpointChainRule> endpoints) {
 
     public ActorChainsConfig {
         if (defaults == null) {

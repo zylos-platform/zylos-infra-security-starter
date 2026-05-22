@@ -17,7 +17,10 @@ import jakarta.validation.constraints.Min;
  *                            longer than this is rejected regardless of endpoint rules; default 5
  *                            per architecture
  */
-public record ChainDefaults(boolean rejectIfNoPathMatch, boolean allowEmptyChain, @Min(1) int maxChainDepth) {
+public record ChainDefaults(
+        boolean rejectIfNoPathMatch,
+        boolean allowEmptyChain,
+        @Min(1) int maxChainDepth) {
 
     /**
      * Conservative defaults used when not configured explicitly.

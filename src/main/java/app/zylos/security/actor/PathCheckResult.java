@@ -1,11 +1,12 @@
 package app.zylos.security.actor;
 
+import org.jspecify.annotations.Nullable;
 import org.springframework.security.authorization.AuthorizationDecision;
 
 public record PathCheckResult(
-    AuthorizationDecision immediateDecision,
-    EndpointChainRule requiredRule
-) {
+        @Nullable AuthorizationDecision immediateDecision,
+        @Nullable EndpointChainRule requiredRule) {
+
     public boolean requiresAuthentication() {
         return immediateDecision == null;
     }

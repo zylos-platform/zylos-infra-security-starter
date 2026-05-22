@@ -1,14 +1,16 @@
 package app.zylos.security.actor;
 
+import java.util.function.Supplier;
+
 import jakarta.servlet.http.HttpServletRequest;
+
+import org.jspecify.annotations.Nullable;
 import org.springframework.security.authorization.AuthorityAuthorizationDecision;
 import org.springframework.security.authorization.AuthorizationDecision;
 import org.springframework.security.authorization.AuthorizationManager;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.web.access.intercept.RequestAuthorizationContext;
-
-import java.util.function.Supplier;
 
 /**
  * Servlet-stack {@link AuthorizationManager} enforcing the Zylos actor-chain
@@ -36,18 +38,22 @@ import java.util.function.Supplier;
  * required authority {@code ZYLOS_ACTOR_CHAIN_MATCH}, surfacing the failure
  * reason in standard Spring Security error-response handling.
  */
-public record ActorChainAuthorizationManager(
-    ActorChainEvaluator evaluator
-) implements AuthorizationManager<RequestAuthorizationContext> {
+public record ActorChainAuthorizationManager(ActorChainEvaluator evaluator)
+        implements AuthorizationManager<RequestAuthorizationContext> {
 
     @Override
-    public AuthorizationDecision authorize(Supplier<? extends Authentication> authentication, RequestAuthorizationContext context) {
-        HttpServletRequest request = context.getRequest();
-        String path = request.getServletPath();
+    public @Nullable AuthorizationDecision authorize(
+            Supplier<? extends Authentication> authentication, @Nullable RequestAuthorizationContext context) {
 
-        if (path == null || path.isEmpty()) {
-            path = request.getRequestURI();
+        if (context == null) {
+            return new AuthorizationDecision(false);
         }
+
+        HttpServletRequest request = context.getRequest();
+
+        String contextPath = request.getContextPath();
+        String requestUri = request.getRequestURI();
+        String path = requestUri.startsWith(contextPath) ? requestUri.substring(contextPath.length()) : requestUri;
 
         PathCheckResult check = evaluator.checkPath(path);
 

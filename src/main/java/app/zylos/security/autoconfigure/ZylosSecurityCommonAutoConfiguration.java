@@ -1,13 +1,9 @@
 package app.zylos.security.autoconfigure;
 
-import app.zylos.security.actor.ActorChainEvaluator;
-import app.zylos.security.actor.ActorChainsConfig;
-import app.zylos.security.actor.ActorChainsLoader;
-import app.zylos.security.actor.ActorChainsRegistry;
-import app.zylos.security.properties.ZylosSecurityProperties;
-import com.github.benmanes.caffeine.cache.Caffeine;
-import io.micrometer.core.instrument.MeterRegistry;
-import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
+import java.io.IOException;
+import java.util.Objects;
+import java.util.concurrent.TimeUnit;
+
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
@@ -19,9 +15,16 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.ResourceLoader;
 
-import java.io.IOException;
-import java.util.Objects;
-import java.util.concurrent.TimeUnit;
+import com.github.benmanes.caffeine.cache.Caffeine;
+
+import app.zylos.security.actor.ActorChainEvaluator;
+import app.zylos.security.actor.ActorChainsConfig;
+import app.zylos.security.actor.ActorChainsLoader;
+import app.zylos.security.actor.ActorChainsRegistry;
+import app.zylos.security.properties.ZylosSecurityProperties;
+
+import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 
 /**
  * Stack-agnostic beans for the Zylos security starter. This autoconfiguration
@@ -53,10 +56,10 @@ public class ZylosSecurityCommonAutoConfiguration {
         int maxEntries = Objects.requireNonNull(properties.jwksCache().maxEntries());
 
         com.github.benmanes.caffeine.cache.Cache<Object, Object> caffeine = Caffeine.newBuilder()
-            .expireAfterWrite(ttlMillis, TimeUnit.MILLISECONDS)
-            .maximumSize(maxEntries)
-            .recordStats()
-            .build();
+                .expireAfterWrite(ttlMillis, TimeUnit.MILLISECONDS)
+                .maximumSize(maxEntries)
+                .recordStats()
+                .build();
         return new CaffeineCache(JWKS_CACHE_BEAN_NAME, caffeine);
     }
 
@@ -77,8 +80,13 @@ public class ZylosSecurityCommonAutoConfiguration {
      */
     @Bean
     @ConditionalOnMissingBean
-    @ConditionalOnProperty(prefix = "zylos.security.actor-chains", name = "enabled", havingValue = "true", matchIfMissing = true)
-    public ActorChainsRegistry actorChainsRegistry(ZylosSecurityProperties properties, ResourceLoader resourceLoader) throws IOException {
+    @ConditionalOnProperty(
+            prefix = "zylos.security.actor-chains",
+            name = "enabled",
+            havingValue = "true",
+            matchIfMissing = true)
+    public ActorChainsRegistry actorChainsRegistry(ZylosSecurityProperties properties, ResourceLoader resourceLoader)
+            throws IOException {
         Resource resource = resourceLoader.getResource(properties.actorChains().location());
         ActorChainsConfig config = ActorChainsLoader.load(resource);
         return new ActorChainsRegistry(config);
@@ -87,9 +95,7 @@ public class ZylosSecurityCommonAutoConfiguration {
     @Bean
     @ConditionalOnMissingBean
     @ConditionalOnBean(ActorChainsRegistry.class)
-    public ActorChainEvaluator actorChainEvaluator(
-        ActorChainsRegistry registry,
-        MeterRegistry meterRegistry) {
+    public ActorChainEvaluator actorChainEvaluator(ActorChainsRegistry registry, MeterRegistry meterRegistry) {
         return new ActorChainEvaluator(registry, meterRegistry);
     }
 }

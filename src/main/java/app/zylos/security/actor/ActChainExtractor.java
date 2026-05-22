@@ -1,9 +1,9 @@
 package app.zylos.security.actor;
 
+import java.util.*;
+
 import org.jspecify.annotations.Nullable;
 import org.springframework.security.oauth2.jwt.Jwt;
-
-import java.util.*;
 
 /**
  * Extracts an ordered chain of actors from a JWT's {@code act} claim.
@@ -36,6 +36,7 @@ public final class ActChainExtractor {
      * Hard ceiling against malicious deeply-nested act claims.
      */
     static final int MAX_DEPTH = 20;
+
     private static final String ACT_CLAIM = "act";
     private static final String CLIENT_ID_FIELD = "client_id";
     private static final String SUB_FIELD = "sub";

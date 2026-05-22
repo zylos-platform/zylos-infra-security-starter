@@ -1,6 +1,12 @@
 package app.zylos.security.actor;
 
-import io.micrometer.core.instrument.MeterRegistry;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.concurrent.ConcurrentHashMap;
+
+import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.authorization.AuthorityAuthorizationDecision;
@@ -10,26 +16,43 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 
-import java.util.List;
-import java.util.Optional;
+import io.micrometer.core.instrument.Counter;
+import io.micrometer.core.instrument.MeterRegistry;
 
-public record ActorChainEvaluator(
-    ActorChainsRegistry registry,
-    MeterRegistry meterRegistry
-) {
+public final class ActorChainEvaluator {
     private static final Logger log = LoggerFactory.getLogger(ActorChainEvaluator.class);
+
     private static final String REQUIRED_AUTHORITY = "ZYLOS_ACTOR_CHAIN_MATCH";
     private static final String METRIC_NAME = "zylos_actor_chain_decisions_total";
 
-    private static Jwt extractJwt(Authentication authentication) {
+    private final ActorChainsRegistry registry;
+    private final MeterRegistry meterRegistry;
+
+    private final Map<String, Counter> permitCounters = new ConcurrentHashMap<>();
+    private final Map<String, Counter> denyCounters = new ConcurrentHashMap<>();
+
+    public ActorChainEvaluator(ActorChainsRegistry registry, MeterRegistry meterRegistry) {
+        this.registry = registry;
+        this.meterRegistry = meterRegistry;
+    }
+
+    private static @Nullable Jwt extractJwt(@Nullable Authentication authentication) {
         if (authentication instanceof JwtAuthenticationToken token) return token.getToken();
-        if (authentication.getPrincipal() instanceof Jwt jwt) return jwt;
+        if (authentication != null && authentication.getPrincipal() instanceof Jwt jwt) return jwt;
         return null;
     }
 
     private static boolean chainMatches(List<ActorPrincipal> actual, List<List<String>> permitted) {
-        List<String> actualKeys = actual.stream().map(ActorPrincipal::matchKey).toList();
-        if (actualKeys.contains(null)) return false;
+        List<String> actualKeys = new ArrayList<>(actual.size());
+
+        for (ActorPrincipal principal : actual) {
+            String key = principal.matchKey();
+
+            if (key == null) {
+                return false;
+            }
+            actualKeys.add(key);
+        }
 
         for (List<String> permittedChain : permitted) {
             if (actualKeys.equals(permittedChain)) return true;
@@ -51,11 +74,12 @@ public record ActorChainEvaluator(
             return new PathCheckResult(permit(path, "no_rule_default_permit"), null);
         }
 
-        // Authorization required.
+        // Authorization required. Defer token evaluation.
         return new PathCheckResult(null, ruleOpt.get());
     }
 
-    public AuthorizationDecision evaluateToken(Authentication authentication, String path, EndpointChainRule rule) {
+    public AuthorizationDecision evaluateToken(
+            @Nullable Authentication authentication, String path, EndpointChainRule rule) {
         if (authentication == null) {
             return deny(path, "no_jwt");
         }
@@ -80,12 +104,10 @@ public record ActorChainEvaluator(
         return deny(path, "chain_mismatch");
     }
 
-    public AuthorizationDecision denyFallback(String path) {
-        return deny(path, "no_jwt");
-    }
-
     private AuthorizationDecision permit(String path, String reason) {
-        meterRegistry.counter(METRIC_NAME, "decision", "permit", "reason", reason).increment();
+        permitCounters
+                .computeIfAbsent(reason, r -> meterRegistry.counter(METRIC_NAME, "decision", "permit", "reason", r))
+                .increment();
 
         if (log.isDebugEnabled()) {
             log.debug("Actor chain check permitted for path={} reason={}", path, reason);
@@ -94,10 +116,11 @@ public record ActorChainEvaluator(
     }
 
     private AuthorizationDecision deny(String path, String reason) {
-        meterRegistry.counter(METRIC_NAME, "decision", "deny", "reason", reason).increment();
+        denyCounters
+                .computeIfAbsent(reason, r -> meterRegistry.counter(METRIC_NAME, "decision", "deny", "reason", r))
+                .increment();
 
         log.info("Actor chain check denied for path={} reason={}", path, reason);
-        return new AuthorityAuthorizationDecision(
-            false, List.of(new SimpleGrantedAuthority(REQUIRED_AUTHORITY)));
+        return new AuthorityAuthorizationDecision(false, List.of(new SimpleGrantedAuthority(REQUIRED_AUTHORITY)));
     }
 }

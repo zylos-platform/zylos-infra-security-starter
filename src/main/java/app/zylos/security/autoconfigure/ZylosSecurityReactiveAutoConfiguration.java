@@ -1,12 +1,5 @@
 package app.zylos.security.autoconfigure;
 
-import app.zylos.security.actor.ActorChainEvaluator;
-import app.zylos.security.actor.ActorChainReactiveAuthorizationManager;
-import app.zylos.security.jwt.UnknownKidRefreshingReactiveJwtDecoder;
-import app.zylos.security.jwt.ZylosJwtValidatorCustomizer;
-import app.zylos.security.jwt.ZylosJwtValidatorFactory;
-import app.zylos.security.properties.ZylosSecurityProperties;
-import io.micrometer.core.instrument.MeterRegistry;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
@@ -19,6 +12,15 @@ import org.springframework.security.oauth2.core.OAuth2TokenValidator;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.jwt.NimbusReactiveJwtDecoder;
 import org.springframework.security.oauth2.jwt.ReactiveJwtDecoder;
+
+import app.zylos.security.actor.ActorChainEvaluator;
+import app.zylos.security.actor.ActorChainReactiveAuthorizationManager;
+import app.zylos.security.jwt.UnknownKidRefreshingReactiveJwtDecoder;
+import app.zylos.security.jwt.ZylosJwtValidatorCustomizer;
+import app.zylos.security.jwt.ZylosJwtValidatorFactory;
+import app.zylos.security.properties.ZylosSecurityProperties;
+
+import io.micrometer.core.instrument.MeterRegistry;
 
 /**
  * Reactive-stack auto-configuration. Active when WebFlux is on the classpath
@@ -44,7 +46,7 @@ public class ZylosSecurityReactiveAutoConfiguration {
     @Bean
     @ConditionalOnMissingBean(name = "zylosReactiveJwtValidator")
     public OAuth2TokenValidator<Jwt> zylosReactiveJwtValidator(
-        ZylosSecurityProperties properties, ObjectProvider<ZylosJwtValidatorCustomizer> customizers) {
+            ZylosSecurityProperties properties, ObjectProvider<ZylosJwtValidatorCustomizer> customizers) {
 
         return ZylosJwtValidatorFactory.create(properties, customizers);
     }
@@ -52,12 +54,12 @@ public class ZylosSecurityReactiveAutoConfiguration {
     @Bean
     @ConditionalOnMissingBean
     public ReactiveJwtDecoder reactiveJwtDecoder(
-        ZylosSecurityProperties properties,
-        Cache jwksCache,
-        OAuth2TokenValidator<Jwt> zylosReactiveJwtValidator,
-        MeterRegistry meterRegistry) {
+            ZylosSecurityProperties properties,
+            Cache jwksCache,
+            OAuth2TokenValidator<Jwt> zylosReactiveJwtValidator,
+            MeterRegistry meterRegistry) {
         NimbusReactiveJwtDecoder nimbus = NimbusReactiveJwtDecoder.withIssuerLocation(properties.issuerUri())
-            .build();
+                .build();
         nimbus.setJwtValidator(zylosReactiveJwtValidator);
 
         return new UnknownKidRefreshingReactiveJwtDecoder(nimbus, jwksCache, properties.issuerUri(), meterRegistry);
@@ -66,7 +68,8 @@ public class ZylosSecurityReactiveAutoConfiguration {
     @Bean
     @ConditionalOnMissingBean
     @ConditionalOnBean(ActorChainEvaluator.class)
-    public ActorChainReactiveAuthorizationManager actorChainReactiveAuthorizationManager(ActorChainEvaluator evaluator) {
+    public ActorChainReactiveAuthorizationManager actorChainReactiveAuthorizationManager(
+            ActorChainEvaluator evaluator) {
         return new ActorChainReactiveAuthorizationManager(evaluator);
     }
 }

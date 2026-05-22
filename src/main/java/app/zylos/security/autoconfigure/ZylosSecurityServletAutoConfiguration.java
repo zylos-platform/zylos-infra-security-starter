@@ -1,13 +1,5 @@
 package app.zylos.security.autoconfigure;
 
-import app.zylos.security.actor.ActorChainAuthorizationManager;
-import app.zylos.security.actor.ActorChainEvaluator;
-import app.zylos.security.jwt.AudienceValidator;
-import app.zylos.security.jwt.UnknownKidRefreshingJwtDecoder;
-import app.zylos.security.jwt.ZylosJwtValidatorCustomizer;
-import app.zylos.security.jwt.ZylosJwtValidatorFactory;
-import app.zylos.security.properties.ZylosSecurityProperties;
-import io.micrometer.core.instrument.MeterRegistry;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
@@ -18,6 +10,16 @@ import org.springframework.cache.Cache;
 import org.springframework.context.annotation.Bean;
 import org.springframework.security.oauth2.core.OAuth2TokenValidator;
 import org.springframework.security.oauth2.jwt.*;
+
+import app.zylos.security.actor.ActorChainAuthorizationManager;
+import app.zylos.security.actor.ActorChainEvaluator;
+import app.zylos.security.jwt.AudienceValidator;
+import app.zylos.security.jwt.UnknownKidRefreshingJwtDecoder;
+import app.zylos.security.jwt.ZylosJwtValidatorCustomizer;
+import app.zylos.security.jwt.ZylosJwtValidatorFactory;
+import app.zylos.security.properties.ZylosSecurityProperties;
+
+import io.micrometer.core.instrument.MeterRegistry;
 
 /**
  * Servlet-stack autoconfiguration. Active when {@code spring-boot-starter-web}
@@ -48,7 +50,7 @@ public class ZylosSecurityServletAutoConfiguration {
     @Bean
     @ConditionalOnMissingBean(name = "zylosJwtValidator")
     public OAuth2TokenValidator<Jwt> zylosJwtValidator(
-        ZylosSecurityProperties properties, ObjectProvider<ZylosJwtValidatorCustomizer> customizers) {
+            ZylosSecurityProperties properties, ObjectProvider<ZylosJwtValidatorCustomizer> customizers) {
 
         return ZylosJwtValidatorFactory.create(properties, customizers);
     }
@@ -56,13 +58,13 @@ public class ZylosSecurityServletAutoConfiguration {
     @Bean
     @ConditionalOnMissingBean
     public JwtDecoder jwtDecoder(
-        ZylosSecurityProperties properties,
-        Cache jwksCache,
-        OAuth2TokenValidator<Jwt> zylosJwtValidator,
-        MeterRegistry meterRegistry) {
+            ZylosSecurityProperties properties,
+            Cache jwksCache,
+            OAuth2TokenValidator<Jwt> zylosJwtValidator,
+            MeterRegistry meterRegistry) {
         NimbusJwtDecoder nimbus = NimbusJwtDecoder.withIssuerLocation(properties.issuerUri())
-            .cache(jwksCache)
-            .build();
+                .cache(jwksCache)
+                .build();
 
         nimbus.setJwtValidator(zylosJwtValidator);
 

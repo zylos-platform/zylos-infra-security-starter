@@ -1,9 +1,9 @@
 package app.zylos.security.jwt;
 
+import java.util.List;
+
 import org.springframework.security.oauth2.core.OAuth2TokenValidator;
 import org.springframework.security.oauth2.jwt.Jwt;
-
-import java.util.List;
 
 /**
  * Extension point for customizing the JWT validator chain built by

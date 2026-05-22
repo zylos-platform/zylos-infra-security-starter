@@ -1,10 +1,12 @@
 package app.zylos.security.actor;
 
-import com.fasterxml.jackson.dataformat.yaml.YAMLMapper;
-import org.springframework.core.io.Resource;
-
 import java.io.IOException;
 import java.io.InputStream;
+
+import org.springframework.core.io.Resource;
+
+import com.fasterxml.jackson.databind.exc.MismatchedInputException;
+import com.fasterxml.jackson.dataformat.yaml.YAMLMapper;
 
 /**
  * Loads {@link ActorChainsConfig} from a Spring {@link Resource} pointing at
@@ -26,8 +28,8 @@ import java.io.InputStream;
 public final class ActorChainsLoader {
 
     private static final YAMLMapper MAPPER = YAMLMapper.builder()
-        .findAndAddModules() // ensures jackson-module-parameter-names picks up record components
-        .build();
+            .findAndAddModules() // ensures jackson-module-parameter-names picks up record components
+            .build();
 
     private ActorChainsLoader() {
         // Utility class.
@@ -43,18 +45,26 @@ public final class ActorChainsLoader {
      * @throws IllegalStateException if the resource is empty, malformed, or
      *                               fails validation constraints
      */
+    @SuppressWarnings({"ConstantConditions", "ConstantValue"})
     public static ActorChainsConfig load(Resource resource) throws IOException {
         if (!resource.exists()) {
-            throw new IllegalStateException(
-                "Actor chains config not found at: " + resource.getDescription()
+            throw new IllegalStateException("Actor chains config not found at: " + resource.getDescription()
                     + ". Either provide the file or set zylos.security.actor-chains.enabled=false.");
         }
 
         try (InputStream in = resource.getInputStream()) {
-            ActorChainsConfig config = MAPPER.readValue(in, ActorChainsConfig.class);
+            ActorChainsConfig config;
 
+            try {
+                config = MAPPER.readValue(in, ActorChainsConfig.class);
+
+            } catch (MismatchedInputException _) {
+                return ActorChainsConfig.empty();
+            }
+
+            // if the YAML document explicitly contains just the `null` literal.
             if (config == null) {
-                throw new IllegalStateException("Empty actor-chains config: " + resource.getDescription());
+                return ActorChainsConfig.empty();
             }
 
             return config;

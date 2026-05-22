@@ -1,14 +1,15 @@
 package app.zylos.security.properties;
 
+import java.net.URI;
+import java.time.Duration;
+
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Positive;
+
 import org.jspecify.annotations.Nullable;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.validation.annotation.Validated;
-
-import java.net.URI;
-import java.time.Duration;
 
 /**
  * Configuration properties for the Zylos security starter, bound under the
@@ -30,12 +31,12 @@ import java.time.Duration;
 @Validated
 @ConfigurationProperties(prefix = "zylos.security")
 public record ZylosSecurityProperties(
-    @NotBlank String issuerUri,
-    @NotBlank String expectedAudience,
-    Duration clockSkew,
-    JwksCacheProperties jwksCache,
-    ActorChainsProperties actorChains,
-    OpaProperties opa) {
+        @NotBlank String issuerUri,
+        @NotBlank String expectedAudience,
+        Duration clockSkew,
+        JwksCacheProperties jwksCache,
+        ActorChainsProperties actorChains,
+        OpaProperties opa) {
 
     public ZylosSecurityProperties {
         if (clockSkew == null) {
@@ -60,7 +61,7 @@ public record ZylosSecurityProperties(
      * org.springframework.cache.Cache} handed to {@code NimbusJwtDecoder}.
      */
     public record JwksCacheProperties(
-        @Nullable Duration ttl, @Nullable @Positive Integer maxEntries) {
+            @Nullable Duration ttl, @Nullable @Positive Integer maxEntries) {
         public JwksCacheProperties {
             if (ttl == null) {
                 ttl = Duration.ofHours(1);
@@ -75,7 +76,8 @@ public record ZylosSecurityProperties(
     /**
      * Location of the actor-chains YAML.
      */
-    public record ActorChainsProperties(@Nullable Boolean enabled, @Nullable String location) {
+    public record ActorChainsProperties(
+            @Nullable Boolean enabled, @Nullable String location) {
         public ActorChainsProperties {
             if (enabled == null) {
                 enabled = true;
@@ -90,9 +92,9 @@ public record ZylosSecurityProperties(
      * OPA endpoint and cache settings
      */
     public record OpaProperties(
-        @Nullable URI endpoint,
-        @Nullable Duration cacheTtl,
-        @Nullable @Min(0) Integer cacheMaxSize) {
+            @Nullable URI endpoint,
+            @Nullable Duration cacheTtl,
+            @Nullable @Min(0) Integer cacheMaxSize) {
         public OpaProperties {
             if (cacheTtl == null) {
                 cacheTtl = Duration.ofSeconds(30);

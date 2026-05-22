@@ -1,11 +1,11 @@
 package app.zylos.security.actor;
 
+import java.util.List;
+import java.util.Optional;
+
 import org.springframework.http.server.PathContainer;
 import org.springframework.web.util.pattern.PathPattern;
 import org.springframework.web.util.pattern.PathPatternParser;
-
-import java.util.List;
-import java.util.Optional;
 
 /**
  * Indexed, query-optimized view of {@link ActorChainsConfig}.
@@ -28,8 +28,8 @@ public final class ActorChainsRegistry {
         this.defaults = config.defaults();
         PathPatternParser parser = PathPatternParser.defaultInstance;
         this.rules = config.endpoints().stream()
-            .map(rule -> new CompiledRule(parser.parse(rule.pathPattern()), rule))
-            .toList();
+                .map(rule -> new CompiledRule(parser.parse(rule.pathPattern()), rule))
+                .toList();
     }
 
     /**
@@ -65,6 +65,5 @@ public final class ActorChainsRegistry {
         return rules.size();
     }
 
-    private record CompiledRule(PathPattern pattern, EndpointChainRule original) {
-    }
+    private record CompiledRule(PathPattern pattern, EndpointChainRule original) {}
 }

@@ -1,6 +1,8 @@
 package app.zylos.security.jwt;
 
-import app.zylos.security.properties.ZylosSecurityProperties;
+import java.util.ArrayList;
+import java.util.List;
+
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.security.oauth2.core.DelegatingOAuth2TokenValidator;
 import org.springframework.security.oauth2.core.OAuth2TokenValidator;
@@ -8,8 +10,7 @@ import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.jwt.JwtIssuerValidator;
 import org.springframework.security.oauth2.jwt.JwtTimestampValidator;
 
-import java.util.ArrayList;
-import java.util.List;
+import app.zylos.security.properties.ZylosSecurityProperties;
 
 /**
  * Builds the Zylos JWT validator chain composed of built-in validators
@@ -45,7 +46,7 @@ public final class ZylosJwtValidatorFactory {
      * wrapping the final composed list
      */
     public static OAuth2TokenValidator<Jwt> create(
-        ZylosSecurityProperties properties, ObjectProvider<ZylosJwtValidatorCustomizer> customizers) {
+            ZylosSecurityProperties properties, ObjectProvider<ZylosJwtValidatorCustomizer> customizers) {
 
         List<OAuth2TokenValidator<Jwt>> validators = new ArrayList<>();
 

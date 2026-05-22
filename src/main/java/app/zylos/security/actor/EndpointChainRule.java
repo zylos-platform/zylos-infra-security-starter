@@ -1,8 +1,11 @@
 package app.zylos.security.actor;
 
+import java.util.List;
+import java.util.Objects;
+
 import jakarta.validation.constraints.NotBlank;
 
-import java.util.List;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Per-endpoint chain rule from {@code actor-chains.yaml}.
@@ -17,12 +20,17 @@ import java.util.List;
  *                        entirely (the authorization manager permits the request); used for
  *                        unauthenticated routes
  */
-public record EndpointChainRule(@NotBlank String pathPattern, List<List<String>> permittedChains,
-                                boolean publicAccess) {
+public record EndpointChainRule(
+        @NotBlank String pathPattern, @Nullable List<List<String>> permittedChains, boolean publicAccess) {
 
     public EndpointChainRule {
         if (permittedChains == null) {
             permittedChains = List.of();
         }
+    }
+
+    @Override
+    public List<List<String>> permittedChains() {
+        return Objects.requireNonNull(permittedChains);
     }
 }

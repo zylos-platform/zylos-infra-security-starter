@@ -20,7 +20,8 @@ import org.jspecify.annotations.Nullable;
  * @param sub      the {@code sub} field from this {@code act} entry, or
  *                 {@code null} if absent
  */
-public record ActorPrincipal(@Nullable String clientId, @Nullable String sub) {
+public record ActorPrincipal(
+        @Nullable String clientId, @Nullable String sub) {
 
     /**
      * The canonical identifier used for matching. Prefers {@code clientId}
