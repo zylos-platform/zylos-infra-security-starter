@@ -48,7 +48,7 @@ public record ZylosSecurityProperties(
         }
 
         if (actorChains == null) {
-            actorChains = new ActorChainsProperties(null);
+            actorChains = new ActorChainsProperties(null, null);
         }
 
         if (opa == null) {
@@ -76,8 +76,12 @@ public record ZylosSecurityProperties(
     /**
      * Location of the actor-chains YAML.
      */
-    public record ActorChainsProperties(@Nullable String location) {
+    public record ActorChainsProperties(
+            @Nullable Boolean enabled, @Nullable String location) {
         public ActorChainsProperties {
+            if (enabled == null) {
+                enabled = true;
+            }
             if (location == null) {
                 location = "classpath:actor-chains.yaml";
             }

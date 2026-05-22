@@ -2,6 +2,7 @@ package app.zylos.security.autoconfigure;
 
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnWebApplication;
@@ -12,13 +13,14 @@ import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.jwt.NimbusReactiveJwtDecoder;
 import org.springframework.security.oauth2.jwt.ReactiveJwtDecoder;
 
+import app.zylos.security.actor.ActorChainEvaluator;
+import app.zylos.security.actor.ActorChainReactiveAuthorizationManager;
 import app.zylos.security.jwt.UnknownKidRefreshingReactiveJwtDecoder;
 import app.zylos.security.jwt.ZylosJwtValidatorCustomizer;
 import app.zylos.security.jwt.ZylosJwtValidatorFactory;
 import app.zylos.security.properties.ZylosSecurityProperties;
 
 import io.micrometer.core.instrument.MeterRegistry;
-import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 
 /**
  * Reactive-stack auto-configuration. Active when WebFlux is on the classpath
@@ -42,12 +44,6 @@ import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 public class ZylosSecurityReactiveAutoConfiguration {
 
     @Bean
-    @ConditionalOnMissingBean
-    public MeterRegistry zylosSecurityReactiveFallbackMeterRegistry() {
-        return new SimpleMeterRegistry();
-    }
-
-    @Bean
     @ConditionalOnMissingBean(name = "zylosReactiveJwtValidator")
     public OAuth2TokenValidator<Jwt> zylosReactiveJwtValidator(
             ZylosSecurityProperties properties, ObjectProvider<ZylosJwtValidatorCustomizer> customizers) {
@@ -67,5 +63,13 @@ public class ZylosSecurityReactiveAutoConfiguration {
         nimbus.setJwtValidator(zylosReactiveJwtValidator);
 
         return new UnknownKidRefreshingReactiveJwtDecoder(nimbus, jwksCache, properties.issuerUri(), meterRegistry);
+    }
+
+    @Bean
+    @ConditionalOnMissingBean
+    @ConditionalOnBean(ActorChainEvaluator.class)
+    public ActorChainReactiveAuthorizationManager actorChainReactiveAuthorizationManager(
+            ActorChainEvaluator evaluator) {
+        return new ActorChainReactiveAuthorizationManager(evaluator);
     }
 }

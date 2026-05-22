@@ -1,0 +1,64 @@
+###############################################################################
+# Example actor-chains.yaml.
+#
+# Per-service file at classpath:/actor-chains.yaml. Each Zylos service that
+# enforces chain authorization owns its own copy of this file declaring which
+# call paths reach which endpoints.
+#
+# RFC 8693 normatively says only the current actor governs access decisions
+# and prior actors are informational. Zylos's chain validation goes beyond
+# the RFC (see ADR 0003): we treat the full chain as authorization material
+# for defense-in-depth, on top of aud-binding and mesh policy.
+#
+# Permitted chains are written in chronological order (least-recent actor
+# first). For a token whose nested act claim is:
+#
+#   "act": { "client_id": "zylos-internal-cart",
+#            "act": { "client_id": "zylos-gateway" } }
+#
+# the extracted chain is [zylos-gateway, zylos-internal-cart].
+###############################################################################
+
+defaults:
+  # When a request matches no endpoint rule below, default to reject.
+  # Services that only chain-validate a subset of endpoints can set this
+  # to false; unmatched paths then permit (subject to other security
+  # filters in the chain).
+  rejectIfNoPathMatch: true
+
+  # When a token's act claim is absent (no token exchange occurred), reject
+  # by default. Direct user-to-service calls are rare in Zylos and usually
+  # bypass the cluster perimeter, so this default catches misconfiguration.
+  allowEmptyChain: false
+
+  # Defense-in-depth: reject pathological chains. Architecture places
+  # a typical Zylos hot path at 2–4 hops; 5 leaves headroom for legitimate
+  # long flows.
+  maxChainDepth: 5
+
+endpoints:
+
+  # Public endpoint — no chain validation. Returns "permit" regardless of
+  # whether the request carries an act claim or even a JWT (other security
+  # filters still apply).
+  - pathPattern: /api/v1/hello/public
+    publicAccess: true
+
+  # Authenticated user endpoint reachable via both web and mobile BFFs.
+  # Both chains have the gateway as the immediate (rightmost) caller.
+  - pathPattern: /api/v1/hello/me
+    permittedChains:
+      - [ zylos-gateway ]
+      - [ zylos-mobile-bff, zylos-gateway ]
+
+  # Seller-owned resource: reachable only via the gateway directly. Direct
+  # service-to-service calls (e.g., from another internal service) are not
+  # permitted on this path.
+  - pathPattern: /api/v1/hello/seller/**
+    permittedChains:
+      - [ zylos-gateway ]
+
+  # Admin endpoint: gateway only.
+  - pathPattern: /api/v1/hello/admin
+    permittedChains:
+      - [ zylos-gateway ]

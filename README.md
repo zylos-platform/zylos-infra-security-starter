@@ -20,9 +20,9 @@ Three lines in your service's `pom.xml`:
 ```xml
 
 <dependency>
-    <groupId>app.zylos</groupId>
-    <artifactId>zylos-infra-security-starter</artifactId>
-    <version>${zylos-security-starter.version}</version>
+  <groupId>app.zylos</groupId>
+  <artifactId>zylos-infra-security-starter</artifactId>
+  <version>${zylos-security-starter.version}</version>
 </dependency>
 ```
 
@@ -38,6 +38,32 @@ zylos:
 ```
 
 The starter auto-configures the rest.
+
+## Wiring into a Service
+
+The starter auto-configures the JWT decoder and the `ActorChainAuthorizationManager`
+bean. Wire the manager into your service's security filter chain explicitly so
+you retain control of CSRF, CORS, and other security concerns:
+
+```java
+
+@Configuration
+class SecurityConfig {
+
+  @Bean
+  SecurityFilterChain filterChain(HttpSecurity http, ActorChainAuthorizationManager actorChain) throws Exception {
+    http.oauth2ResourceServer(rs -> rs.jwt(Customizer.withDefaults()))
+      .authorizeHttpRequests(authz -> authz
+        .requestMatchers("/api/**").access(actorChain)
+        .anyRequest().permitAll());
+    return http.build();
+  }
+}
+```
+
+Provide an `actor-chains.yaml` on the classpath, or set
+`zylos.security.actor-chains.enabled=false` to disable chain validation
+for this service.
 
 ## Architecture
 
