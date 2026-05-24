@@ -9,13 +9,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- Actor-chain authorization: `ActChainExtractor`, `ActorChainsLoader`,
-  `ActorChainsRegistry`, servlet + reactive `AuthorizationManager`
-  implementations.
-- `actor-chains.yaml` schema with path-pattern rules, permitted chains,
-  `publicAccess` flag, and defaults.
-- `zylos.security.actor-chains.enabled` opt-out property.
-- ADR 0003: Actor chain design.
+- OPA integration: `OpaClient` interface with `RestClient`-based (servlet)
+  and `ReactiveOpaClient` interface with `WebClient`-based (reactive) backends; `CachingOpaClient` decorator
+  with Caffeine (30 s TTL, 50k entries, negative caching).
+- Autoconfiguration: `OpaClient` bean exposed when
+  `zylos.security.opa.endpoint` is set.
+- Micrometer metrics: `zylos_opa_decision_duration_seconds`,
+  `zylos_opa_decision_cache`.
+- ADR 0004: OPA integration pattern.
 
 ### Earlier in this release cycle (already merged)
 

@@ -1,5 +1,5 @@
 /**
- * Spring Boot auto-configuration classes for the Zylos security starter.
+ * Spring Boot autoconfiguration classes for the Zylos security starter.
  *
  * <p>Three auto-configurations participate, in order:
  * <ol>
@@ -9,6 +9,10 @@
  *       — servlet-stack {@code JwtDecoder} and validator chain.</li>
  *   <li>{@link app.zylos.security.autoconfigure.ZylosSecurityReactiveAutoConfiguration}
  *       — reactive-stack {@code ReactiveJwtDecoder} and validator chain.</li>
+ *   <li>{@link app.zylos.security.autoconfigure.ZylosOpaServletAutoConfiguration}
+ *    — servlet-stack OPA integration.</li>
+ *    <li>{@link app.zylos.security.autoconfigure.ZylosOpaReactiveAutoConfiguration}
+ *    — reactive-stack OPA integration.</li>
  * </ol>
  */
 @NullMarked

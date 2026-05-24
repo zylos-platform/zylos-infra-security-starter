@@ -3,3 +3,5 @@
 app.zylos.security.autoconfigure.ZylosSecurityCommonAutoConfiguration
 app.zylos.security.autoconfigure.ZylosSecurityServletAutoConfiguration
 app.zylos.security.autoconfigure.ZylosSecurityReactiveAutoConfiguration
+app.zylos.security.autoconfigure.ZylosOpaServletAutoConfiguration
+app.zylos.security.autoconfigure.ZylosOpaReactiveAutoConfiguration

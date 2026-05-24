@@ -5,10 +5,10 @@ import java.time.Duration;
 
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.Positive;
 
 import org.jspecify.annotations.Nullable;
 import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.boot.context.properties.bind.DefaultValue;
 import org.springframework.validation.annotation.Validated;
 
 /**
@@ -33,76 +33,33 @@ import org.springframework.validation.annotation.Validated;
 public record ZylosSecurityProperties(
         @NotBlank String issuerUri,
         @NotBlank String expectedAudience,
-        Duration clockSkew,
-        JwksCacheProperties jwksCache,
-        ActorChainsProperties actorChains,
-        OpaProperties opa) {
-
-    public ZylosSecurityProperties {
-        if (clockSkew == null) {
-            clockSkew = Duration.ofSeconds(30);
-        }
-
-        if (jwksCache == null) {
-            jwksCache = new JwksCacheProperties(null, null);
-        }
-
-        if (actorChains == null) {
-            actorChains = new ActorChainsProperties(null, null);
-        }
-
-        if (opa == null) {
-            opa = new OpaProperties(null, null, null);
-        }
-    }
+        @DefaultValue("30s") Duration clockSkew,
+        @DefaultValue JwksCacheProperties jwksCache,
+        @DefaultValue ActorChainsProperties actorChains,
+        @DefaultValue OpaProperties opa) {
 
     /**
      * JWKS cache settings. The cache is a Caffeine-backed Spring {@link
      * org.springframework.cache.Cache} handed to {@code NimbusJwtDecoder}.
      */
     public record JwksCacheProperties(
-            @Nullable Duration ttl, @Nullable @Positive Integer maxEntries) {
-        public JwksCacheProperties {
-            if (ttl == null) {
-                ttl = Duration.ofHours(1);
-            }
-
-            if (maxEntries == null) {
-                maxEntries = 16;
-            }
-        }
-    }
+            @DefaultValue("1h") Duration ttl,
+            @DefaultValue("16") @Min(1) long maxEntries) {}
 
     /**
      * Location of the actor-chains YAML.
      */
     public record ActorChainsProperties(
-            @Nullable Boolean enabled, @Nullable String location) {
-        public ActorChainsProperties {
-            if (enabled == null) {
-                enabled = true;
-            }
-            if (location == null) {
-                location = "classpath:actor-chains.yaml";
-            }
-        }
-    }
+            @DefaultValue("true") boolean enabled,
+            @DefaultValue("classpath:actor-chains.yaml") String location) {}
 
     /**
-     * OPA endpoint and cache settings
+     * OPA endpoint, timeouts, and decision-cache settings.
      */
     public record OpaProperties(
             @Nullable URI endpoint,
-            @Nullable Duration cacheTtl,
-            @Nullable @Min(0) Integer cacheMaxSize) {
-        public OpaProperties {
-            if (cacheTtl == null) {
-                cacheTtl = Duration.ofSeconds(30);
-            }
-
-            if (cacheMaxSize == null) {
-                cacheMaxSize = 50_000;
-            }
-        }
-    }
+            @DefaultValue("500ms") Duration connectTimeout,
+            @DefaultValue("1s") Duration readTimeout,
+            @DefaultValue("30s") Duration cacheTtl,
+            @DefaultValue("50000") @Min(0) int cacheMaxSize) {}
 }
