@@ -53,7 +53,7 @@ public class ZylosSecurityCommonAutoConfiguration {
     @ConditionalOnMissingBean(name = JWKS_CACHE_BEAN_NAME)
     public Cache jwksCache(ZylosSecurityProperties properties) {
         long ttlMillis = Objects.requireNonNull(properties.jwksCache().ttl()).toMillis();
-        int maxEntries = Objects.requireNonNull(properties.jwksCache().maxEntries());
+        long maxEntries = properties.jwksCache().maxEntries();
 
         com.github.benmanes.caffeine.cache.Cache<Object, Object> caffeine = Caffeine.newBuilder()
                 .expireAfterWrite(ttlMillis, TimeUnit.MILLISECONDS)
