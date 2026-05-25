@@ -28,8 +28,9 @@ import com.github.tomakehurst.wiremock.WireMockServer;
 
 import app.zylos.security.jwt.AudienceValidator;
 import app.zylos.security.jwt.UnknownKidRefreshingJwtDecoder;
-import app.zylos.security.jwt.UnknownKidRefreshingReactiveJwtDecoder;
 import app.zylos.security.jwt.ZylosJwtValidatorCustomizer;
+import app.zylos.security.metrics.MeteredJwtDecoder;
+import app.zylos.security.metrics.MeteredReactiveJwtDecoder;
 import app.zylos.security.properties.ZylosSecurityProperties;
 
 class ZylosSecurityAutoConfigurationTest {
@@ -101,7 +102,7 @@ class ZylosSecurityAutoConfigurationTest {
                     assertThat(context).hasSingleBean(ZylosSecurityProperties.class);
                     assertThat(context).hasSingleBean(Cache.class); // JWKS cache
                     assertThat(context).hasSingleBean(JwtDecoder.class);
-                    assertThat(context.getBean(JwtDecoder.class)).isInstanceOf(UnknownKidRefreshingJwtDecoder.class);
+                    assertThat(context.getBean(JwtDecoder.class)).isInstanceOf(MeteredJwtDecoder.class);
                 });
     }
 
@@ -115,8 +116,7 @@ class ZylosSecurityAutoConfigurationTest {
                     assertThat(context).hasSingleBean(ZylosSecurityProperties.class);
                     assertThat(context).hasSingleBean(Cache.class);
                     assertThat(context).hasSingleBean(ReactiveJwtDecoder.class);
-                    assertThat(context.getBean(ReactiveJwtDecoder.class))
-                            .isInstanceOf(UnknownKidRefreshingReactiveJwtDecoder.class);
+                    assertThat(context.getBean(ReactiveJwtDecoder.class)).isInstanceOf(MeteredReactiveJwtDecoder.class);
                 });
     }
 
