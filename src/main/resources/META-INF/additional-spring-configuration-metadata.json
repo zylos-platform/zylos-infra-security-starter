@@ -93,6 +93,23 @@
       "type": "java.time.Duration",
       "description": "OPA HTTP client read timeout. Default: 1s.",
       "defaultValue": "1s"
+    },
+    {
+      "name": "zylos.security.mdc",
+      "type": "app.zylos.security.properties.ZylosSecurityProperties$MdcProperties",
+      "description": "MDC enrichment settings."
+    },
+    {
+      "name": "zylos.security.mdc.enabled",
+      "type": "java.lang.Boolean",
+      "description": "Whether the MDC enrichment filter is registered. Default: true.",
+      "defaultValue": true
+    },
+    {
+      "name": "zylos.security.mdc.correlation-id-header",
+      "type": "java.lang.String",
+      "description": "Request/response header name for the correlation ID. Default: X-Correlation-Id.",
+      "defaultValue": "X-Correlation-Id"
     }
   ]
 }

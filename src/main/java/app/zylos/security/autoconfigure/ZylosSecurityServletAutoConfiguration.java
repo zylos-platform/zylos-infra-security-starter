@@ -2,10 +2,7 @@ package app.zylos.security.autoconfigure;
 
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnWebApplication;
+import org.springframework.boot.autoconfigure.condition.*;
 import org.springframework.cache.Cache;
 import org.springframework.context.annotation.Bean;
 import org.springframework.security.oauth2.core.OAuth2TokenValidator;
@@ -17,6 +14,8 @@ import app.zylos.security.jwt.AudienceValidator;
 import app.zylos.security.jwt.UnknownKidRefreshingJwtDecoder;
 import app.zylos.security.jwt.ZylosJwtValidatorCustomizer;
 import app.zylos.security.jwt.ZylosJwtValidatorFactory;
+import app.zylos.security.mdc.IdentityMdcFilter;
+import app.zylos.security.metrics.MeteredJwtDecoder;
 import app.zylos.security.properties.ZylosSecurityProperties;
 
 import io.micrometer.core.instrument.MeterRegistry;
@@ -68,7 +67,16 @@ public class ZylosSecurityServletAutoConfiguration {
 
         nimbus.setJwtValidator(zylosJwtValidator);
 
-        return new UnknownKidRefreshingJwtDecoder(nimbus, jwksCache, properties.issuerUri(), meterRegistry);
+        JwtDecoder withKidRefresh =
+                new UnknownKidRefreshingJwtDecoder(nimbus, jwksCache, properties.issuerUri(), meterRegistry);
+        return new MeteredJwtDecoder(withKidRefresh, meterRegistry);
+    }
+
+    @Bean
+    @ConditionalOnMissingBean(IdentityMdcFilter.class)
+    @ConditionalOnProperty(prefix = "zylos.security.mdc", name = "enabled", havingValue = "true", matchIfMissing = true)
+    public IdentityMdcFilter identityMdcFilter(ZylosSecurityProperties properties) {
+        return new IdentityMdcFilter(properties.mdc());
     }
 
     @Bean

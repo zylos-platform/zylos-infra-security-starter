@@ -24,6 +24,8 @@ import app.zylos.security.actor.ActorChainsRegistry;
 import app.zylos.security.properties.ZylosSecurityProperties;
 
 import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.core.instrument.binder.MeterBinder;
+import io.micrometer.core.instrument.binder.cache.CaffeineCacheMetrics;
 import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 
 /**
@@ -97,5 +99,25 @@ public class ZylosSecurityCommonAutoConfiguration {
     @ConditionalOnBean(ActorChainsRegistry.class)
     public ActorChainEvaluator actorChainEvaluator(ActorChainsRegistry registry, MeterRegistry meterRegistry) {
         return new ActorChainEvaluator(registry, meterRegistry);
+    }
+
+    /**
+     * Bind Micrometer's Caffeine binder to the JWKS cache so hits, misses,
+     * evictions, and load durations are exposed without any hand-rolled
+     * counters. Uses the same standard binder the OPA decision cache uses.
+     *
+     * <p>The bean type is {@link MeterBinder} so Spring Boot's actuator
+     * picks it up automatically when {@code micrometer-core} is present.
+     */
+    @Bean
+    @ConditionalOnMissingBean(name = "jwksCacheMetricsBinder")
+    public MeterBinder jwksCacheMetricsBinder(Cache jwksCache) {
+        if (!(jwksCache instanceof CaffeineCache springCache)) {
+            // The starter's default JWKS cache is a CaffeineCache; if a
+            // consumer replaces the bean, we skip metrics binding rather
+            // than fail.
+            return _ -> {};
+        }
+        return registry -> CaffeineCacheMetrics.monitor(registry, springCache.getNativeCache(), "zylos_jwks_cache");
     }
 }

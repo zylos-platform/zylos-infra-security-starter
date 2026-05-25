@@ -1,6 +1,6 @@
 # zylos-infra-security-starter
 
-> Spring Boot 4 auto-configured security starter for Zylos backend services.
+> Spring Boot 4 autoconfigured security starter for Zylos backend services.
 
 Every Zylos service that handles JWTs inherits this starter. It provides:
 
@@ -37,11 +37,56 @@ zylos:
       endpoint: http://opa.opa-system.svc.cluster.local:8181
 ```
 
-The starter auto-configures the rest.
+The starter autoconfigures the rest.
+
+## Observability
+
+The starter publishes Micrometer metrics and populates the MDC for every
+request:
+
+### Metrics
+
+| Metric                                       | Tags             | Source                    |
+|----------------------------------------------|------------------|---------------------------|
+| `zylos_jwt_validation_total`                 | outcome, reason  | JWT decoder               |
+| `zylos_jwt_validation_duration_seconds`      | outcome          | JWT decoder (histogram)   |
+| `zylos_jwks_forced_refresh_total`            | decoder          | JWKS cache refresh        |
+| `cache.gets{cache=zylos_jwks_cache}`         | result           | JWKS cache                |
+| `zylos_actor_chain_decisions_total`          | decision, reason | Actor chain authorization |
+| `zylos_opa_decision_duration_seconds`        | outcome          | OPA client (histogram)    |
+| `cache.gets{cache=zylos_opa_decision_cache}` | result           | OPA decision cache        |
+
+### MDC keys
+
+- `zylos.correlation_id` — per-request correlation ID (extracted from
+  `X-Correlation-Id` header or generated)
+- `zylos.subject` — authenticated subject when present
+- `traceId`, `spanId` — populated by Micrometer Tracing (not the starter)
+
+### Reactive context propagation requirement
+
+For the reactive stack, consumers must enable Reactor's automatic
+context propagation so MDC values are bridged across thread hops:
+
+```yaml
+spring:
+  reactor:
+    context-propagation: auto
+```
+
+Without this, the values reach the Reactor Context but are not bridged
+into MDC for log statements.
+
+### Logback example
+
+```xml
+
+<pattern>%d{ISO8601} %5p [%X{zylos.correlation_id:-},%X{traceId:-}] %X{zylos.subject:-} %logger{36} - %msg%n</pattern>
+```
 
 ## Wiring into a Service
 
-The starter auto-configures the JWT decoder and the `ActorChainAuthorizationManager`
+The starter autoconfigures the JWT decoder and the `ActorChainAuthorizationManager`
 bean. Wire the manager into your service's security filter chain explicitly so
 you retain control of CSRF, CORS, and other security concerns:
 
