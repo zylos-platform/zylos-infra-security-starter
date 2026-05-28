@@ -29,8 +29,9 @@ public record ActorChainAuthorizationManager(ActorChainEvaluator evaluator)
         implements AuthorizationManager<RequestAuthorizationContext> {
 
     @Override
-    public @Nullable AuthorizationDecision authorize(
-            Supplier<? extends Authentication> authentication, @Nullable RequestAuthorizationContext context) {
+    public AuthorizationDecision authorize(
+            Supplier<? extends @Nullable Authentication> authentication,
+            @Nullable RequestAuthorizationContext context) {
 
         if (context == null) {
             return new AuthorizationDecision(false);
@@ -42,11 +43,9 @@ public record ActorChainAuthorizationManager(ActorChainEvaluator evaluator)
         String path = requestUri.startsWith(contextPath) ? requestUri.substring(contextPath.length()) : requestUri;
 
         return switch (evaluator.checkPath(path)) {
-            case PathCheckResult.Immediate immediate -> immediate.decision();
-            case PathCheckResult.AuthenticatedOnly ignored ->
-                evaluator.evaluateAuthenticatedOnly(authentication.get(), path);
-            case PathCheckResult.ChainEvaluation chainEval ->
-                evaluator.evaluateToken(authentication.get(), path, chainEval.rule());
+            case PathCheckResult.Immediate(var decision) -> decision;
+            case PathCheckResult.AuthenticatedOnly _ -> evaluator.evaluateAuthenticatedOnly(authentication.get(), path);
+            case PathCheckResult.ChainEvaluation(var rule) -> evaluator.evaluateToken(authentication.get(), path, rule);
         };
     }
 }

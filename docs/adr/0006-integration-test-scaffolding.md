@@ -113,6 +113,55 @@ behavior against real token shapes.
 | `JwtIntegrationIT`        | Valid token decode; wrong audience rejected; malformed token rejected; invalid-signature token rejected; cache reuse on repeated decode                 |
 | `ActorChainIntegrationIT` | Single-hop chain permitted; two-hop chain permitted; mismatched chain denied; public endpoint permits without token; no matching path denied by default |
 
+## Coverage and the Real-`act` Boundary
+
+After the refinement (chain matching opt-in via `chainSensitive`), the
+actor-chain integration tests (`ActorChainIntegrationIT`) cover the decision
+flow that does not require a populated `act` claim:
+
+- public access (permit without token);
+- non-chain-sensitive endpoints (authenticated-only permit) with a real token;
+- standard default (unmatched path permits an authenticated caller);
+- chain-sensitive wiring with the empty-chain guard firing on a real, act-less
+  token;
+- strict no-match deny;
+- chain-sensitive unauthenticated deny.
+
+### Why the positive chain-match path is not tested here
+
+The security starter's integration tests run against **vanilla Keycloak**
+(`quay.io/keycloak/keycloak`) via the dasniko Testcontainers module. Vanilla
+Keycloak does not populate the RFC 8693 `act` claim — that's the entire reason
+the ActClaimMapper exists (zylos-infra-keycloak-extensions). So a positive
+chain-match (populated `act` equal to a permitted chain) cannot be produced
+here without either:
+
+- **(a)** adding a cross-repo test dependency on the published mapper JAR
+  (requires GitHub Packages authentication in CI even for public packages), or
+- **(b)** running the custom production image in the dasniko container (which
+  bakes `KC_DB=postgres` via `kc.sh build` and conflicts with the container's
+  dev-mode startup).
+
+Both costs are disproportionate because the path is already covered in pieces:
+
+| Layer                                          | Test                                                                               |
+|------------------------------------------------|------------------------------------------------------------------------------------|
+| Mapper produces correctly-shaped `act`         | `ActClaimMapperIT` (keycloak-extensions) — real exchange                           |
+| Extractor parses that `act` format             | `ActChainExtractorTest` (synthesized, matching documented format)                  |
+| Matcher matches chain to permitted chains      | `ActorChainEvaluatorTest`, `ActorChainAuthorizationManagerTest`                    |
+| Full wiring (real `act` → real decode → authz) | **Deferred to Sub-phase** service test against the cluster's custom Keycloak image |
+
+This is a deliberate boundary, not a coverage gap: every layer is tested, and
+the full real-`act` wiring is validated at the service level in Sub-phase
+where the custom image runs natively.
+
+### Future option
+
+If end-to-end real-`act` coverage is wanted inside the starter before
+Sub-phase, add an opt-in test tagged `@Tag("real-mapper")` that mounts the
+mapper JAR into the vanilla container and is skipped by default in CI. This was
+considered and deferred.
+
 ## References
 
 - Phase 1 architecture (validation, token exchange, JWKS)

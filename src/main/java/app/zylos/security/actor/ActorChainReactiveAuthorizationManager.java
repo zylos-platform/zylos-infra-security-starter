@@ -29,15 +29,15 @@ public record ActorChainReactiveAuthorizationManager(ActorChainEvaluator evaluat
                 .value();
 
         return switch (evaluator.checkPath(path)) {
-            case PathCheckResult.Immediate immediate -> Mono.just(immediate.decision());
-            case PathCheckResult.AuthenticatedOnly ignored ->
+            case PathCheckResult.Immediate(var decision) -> Mono.just(decision);
+            case PathCheckResult.AuthenticatedOnly _ ->
                 authentication
                         .<AuthorizationResult>map(auth -> evaluator.evaluateAuthenticatedOnly(auth, path))
                         .switchIfEmpty(Mono.fromSupplier(() -> evaluator.evaluateAuthenticatedOnly(null, path)));
-            case PathCheckResult.ChainEvaluation chainEval ->
+            case PathCheckResult.ChainEvaluation(var rule) ->
                 authentication
-                        .<AuthorizationResult>map(auth -> evaluator.evaluateToken(auth, path, chainEval.rule()))
-                        .switchIfEmpty(Mono.fromSupplier(() -> evaluator.evaluateToken(null, path, chainEval.rule())));
+                        .<AuthorizationResult>map(auth -> evaluator.evaluateToken(auth, path, rule))
+                        .switchIfEmpty(Mono.fromSupplier(() -> evaluator.evaluateToken(null, path, rule)));
         };
     }
 }
