@@ -43,7 +43,8 @@ public record ActorChainAuthorizationManager(ActorChainEvaluator evaluator)
 
     @Override
     public @Nullable AuthorizationDecision authorize(
-            Supplier<? extends Authentication> authentication, @Nullable RequestAuthorizationContext context) {
+            Supplier<? extends @Nullable Authentication> authentication,
+            @Nullable RequestAuthorizationContext context) {
 
         if (context == null) {
             return new AuthorizationDecision(false);

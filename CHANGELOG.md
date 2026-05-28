@@ -9,15 +9,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- MDC enrichment filters (servlet + reactive) populating
-  `zylos.correlation_id` and `zylos.subject` per request.
-- JWT validation metrics: `zylos_jwt_validation_total` and
-  `zylos_jwt_validation_duration_seconds` via decorator pattern.
-- JWKS cache statistics via standard `CaffeineCacheMetrics` binder.
-- `MdcKeys` public constants for consumers' logback configuration.
-- `JwtFailureClassifier` mapping JWT validation failures to bounded
-  category tags for low-cardinality metrics.
-- ADR 0005: Identity MDC and metrics.
+- Testcontainers-based integration tests against real Keycloak 26.6.1:
+  end-to-end JWT validation (`JwtIntegrationIT`) and actor-chain
+  authorization with real RFC 8693 token exchange (`ActorChainIntegrationIT`).
+- `KeycloakIntegrationTestBase` shared base class with singleton container
+  pattern and helpers for token acquisition + RFC 8693 exchange.
+- `@IntegrationTest` composite annotation (`@SpringBootTest` + `@Testcontainers`).
+- Test realm at `src/test/resources/keycloak/test-realm.json` with three
+  V2-token-exchange-enabled clients.
+- Failsafe plugin configuration to run `*IT.java` during `mvn verify`.
+- ADR 0006: Integration test scaffolding.
 
 ### Earlier in this release cycle (already merged)
 

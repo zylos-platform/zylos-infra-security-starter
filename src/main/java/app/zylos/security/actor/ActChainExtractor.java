@@ -3,6 +3,8 @@ package app.zylos.security.actor;
 import java.util.*;
 
 import org.jspecify.annotations.Nullable;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.security.oauth2.jwt.Jwt;
 
 /**
@@ -40,6 +42,7 @@ public final class ActChainExtractor {
     private static final String ACT_CLAIM = "act";
     private static final String CLIENT_ID_FIELD = "client_id";
     private static final String SUB_FIELD = "sub";
+    private static final Logger log = LoggerFactory.getLogger(ActChainExtractor.class);
 
     private ActChainExtractor() {
         // Utility class.
@@ -55,6 +58,8 @@ public final class ActChainExtractor {
     public static List<ActorPrincipal> extract(Jwt jwt) {
         Object actNode = jwt.getClaim(ACT_CLAIM);
 
+        log.info("Extracting act chain from JWT with act claim: {}", actNode);
+
         if (actNode == null) {
             return List.of();
         }
@@ -66,9 +71,8 @@ public final class ActChainExtractor {
             return List.of();
         }
 
-        // Convert to chronological order (most-deeply-nested = first acted).
-        List<ActorPrincipal> chronological = new ArrayList<>(outerToInner);
-        Collections.reverse(chronological);
+        List<ActorPrincipal> chronological = new ArrayList<>(outerToInner).reversed();
+
         return collapseConsecutiveDuplicates(chronological);
     }
 
@@ -98,8 +102,8 @@ public final class ActChainExtractor {
     }
 
     /**
-     * Collapse consecutive duplicate actors. The same {@link
-     * ActorPrincipal#matchKey} appearing twice in a row is treated as one
+     * Collapse consecutive duplicate actors. The same
+     * {@link ActorPrincipal#matchKey} appearing twice in a row is treated as one
      * logical hop. Non-consecutive duplicates (e.g., A → B → A) are
      * preserved as distinct hops since they represent real delegation
      * round-trips.
