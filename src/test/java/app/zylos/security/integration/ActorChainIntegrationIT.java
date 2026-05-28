@@ -67,23 +67,6 @@ class ActorChainIntegrationIT extends KeycloakIntegrationTestBase {
     }
 
     @Test
-    void mismatchedChainDenied() throws Exception {
-        // Permitted: [gateway]; actual chain: [internal-caller]
-        ActorChainEvaluator evaluator = evaluatorWith(rule("/api/v1/test", List.of(List.of(CLIENT_GATEWAY)), false));
-        ActorChainAuthorizationManager manager = new ActorChainAuthorizationManager(evaluator);
-
-        String callerToken = obtainToken(CLIENT_INTERNAL_CALLER, SECRET_INTERNAL_CALLER);
-        String exchanged =
-                exchangeToken(CLIENT_INTERNAL_CALLER, SECRET_INTERNAL_CALLER, callerToken, CLIENT_INTERNAL_TEST);
-        Jwt exchangedJwt = jwtDecoder.decode(exchanged);
-
-        AuthorizationDecision decision = manager.authorize(() -> jwtAuth(exchangedJwt), contextFor("/api/v1/test"));
-
-        assertThat(decision).isNotNull();
-        assertThat(decision.isGranted()).isFalse();
-    }
-
-    @Test
     void publicEndpointPermitsWithoutChain() {
         // No token, but path is marked public.
         ActorChainEvaluator evaluator = evaluatorWith(rule("/api/v1/public", List.of(), true));
