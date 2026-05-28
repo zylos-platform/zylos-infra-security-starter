@@ -23,6 +23,16 @@ public record ChainDefaults(
         @Min(1) int maxChainDepth) {
 
     /**
+     * Unlisted paths permit an authenticated caller;
+     * chain enforcement is opt-in per endpoint via {@code chainSensitive: true}.
+     * This is the default substituted when {@code actor-chains.yaml} omits a
+     * {@code defaults:} block.
+     */
+    public static ChainDefaults standard() {
+        return new ChainDefaults(false, false, 5);
+    }
+
+    /**
      * Conservative defaults used when not configured explicitly.
      */
     public static ChainDefaults strict() {

@@ -10,9 +10,11 @@ import reactor.core.publisher.Mono;
 /**
  * Reactive-stack equivalent of {@link ActorChainAuthorizationManager}.
  *
- * <p>Implements the same five-step decision flow. The reactive
- * {@link AuthorizationContext} provides the {@code ServerWebExchange} from
- * which the request path is read.
+ * <p>Dispatches on the same three {@link PathCheckResult} cases. The
+ * {@link PathCheckResult.Immediate} case returns without subscribing to the
+ * authentication {@code Mono}; the other two resolve it (defaulting to a
+ * {@code null} authentication when the context carries none, so the evaluator
+ * can deny with reason {@code no_jwt}).
  */
 public record ActorChainReactiveAuthorizationManager(ActorChainEvaluator evaluator)
         implements ReactiveAuthorizationManager<AuthorizationContext> {
@@ -26,14 +28,16 @@ public record ActorChainReactiveAuthorizationManager(ActorChainEvaluator evaluat
                 .pathWithinApplication()
                 .value();
 
-        PathCheckResult check = evaluator.checkPath(path);
-
-        if (!check.requiresAuthentication()) {
-            return Mono.just(check.immediateDecision());
-        }
-
-        return authentication
-                .<AuthorizationResult>map(auth -> evaluator.evaluateToken(auth, path, check.requiredRule()))
-                .switchIfEmpty(Mono.fromSupplier(() -> evaluator.evaluateToken(null, path, check.requiredRule())));
+        return switch (evaluator.checkPath(path)) {
+            case PathCheckResult.Immediate immediate -> Mono.just(immediate.decision());
+            case PathCheckResult.AuthenticatedOnly ignored ->
+                authentication
+                        .<AuthorizationResult>map(auth -> evaluator.evaluateAuthenticatedOnly(auth, path))
+                        .switchIfEmpty(Mono.fromSupplier(() -> evaluator.evaluateAuthenticatedOnly(null, path)));
+            case PathCheckResult.ChainEvaluation chainEval ->
+                authentication
+                        .<AuthorizationResult>map(auth -> evaluator.evaluateToken(auth, path, chainEval.rule()))
+                        .switchIfEmpty(Mono.fromSupplier(() -> evaluator.evaluateToken(null, path, chainEval.rule())));
+        };
     }
 }

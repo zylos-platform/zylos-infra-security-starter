@@ -11,8 +11,7 @@ import org.jspecify.annotations.Nullable;
  * policy.
  *
  * @param defaults  defaults applied when no endpoint rule matches; never
- *                  {@code null} (a strict default is substituted in the canonical
- *                  constructor)
+ *                  {@code null} (the {@link ChainDefaults#standard()} is substituted
  * @param endpoints per-endpoint rules, evaluated in declaration order;
  *                  never {@code null} (defaults to empty list)
  */
@@ -22,7 +21,7 @@ public record ActorChainsConfig(
 
     public ActorChainsConfig {
         if (defaults == null) {
-            defaults = ChainDefaults.strict();
+            defaults = ChainDefaults.standard();
         }
 
         if (endpoints == null) {
@@ -31,9 +30,9 @@ public record ActorChainsConfig(
     }
 
     /**
-     * Convenience for fully-default config (no endpoint rules; strict defaults).
+     * Convenience for fully-default config (no endpoint rules; standard defaults).
      */
     public static ActorChainsConfig empty() {
-        return new ActorChainsConfig(ChainDefaults.strict(), List.of());
+        return new ActorChainsConfig(ChainDefaults.standard(), List.of());
     }
 }
