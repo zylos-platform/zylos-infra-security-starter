@@ -1,11 +1,11 @@
 package app.zylos.security.actor;
 
+import java.util.*;
+
 import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.oauth2.jwt.Jwt;
-
-import java.util.*;
 
 /**
  * Extracts an ordered chain of actors from a JWT's {@code act} claim.

@@ -1,13 +1,5 @@
 package app.zylos.security.integration;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import dasniko.testcontainers.keycloak.KeycloakContainer;
-import org.slf4j.LoggerFactory;
-import org.springframework.test.context.DynamicPropertyRegistry;
-import org.springframework.test.context.DynamicPropertySource;
-import org.testcontainers.containers.output.Slf4jLogConsumer;
-
 import java.io.IOException;
 import java.net.URI;
 import java.net.http.HttpClient;
@@ -15,6 +7,16 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
+
+import org.slf4j.LoggerFactory;
+import org.springframework.test.context.DynamicPropertyRegistry;
+import org.springframework.test.context.DynamicPropertySource;
+import org.testcontainers.containers.output.Slf4jLogConsumer;
+
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
+import dasniko.testcontainers.keycloak.KeycloakContainer;
 
 /**
  * Base class for the starter's Keycloak-backed integration tests.
@@ -70,10 +72,10 @@ public abstract class KeycloakIntegrationTestBase {
      * Single shared container across the entire test JVM.
      */
     protected static final KeycloakContainer KEYCLOAK = new KeycloakContainer("quay.io/keycloak/keycloak:26.6.1")
-        .withRealmImportFile("keycloak/zylos-test-realm.json")
-        .withStartupTimeout(Duration.ofMinutes(2))
-        .withReuse(false) // Disabled for CI; can be enabled locally for speed
-        .withLogConsumer(new Slf4jLogConsumer(LoggerFactory.getLogger("KeycloakContainer")));
+            .withRealmImportFile("keycloak/zylos-test-realm.json")
+            .withStartupTimeout(Duration.ofMinutes(2))
+            .withReuse(false) // Disabled for CI; can be enabled locally for speed
+            .withLogConsumer(new Slf4jLogConsumer(LoggerFactory.getLogger("KeycloakContainer")));
 
     private static final ObjectMapper MAPPER = new ObjectMapper();
     private static final HttpClient HTTP = HttpClient.newHttpClient();
@@ -110,9 +112,9 @@ public abstract class KeycloakIntegrationTestBase {
     protected static String obtainToken(String clientId, String clientSecret) throws IOException, InterruptedException {
         String form = "grant_type=client_credentials" + "&client_id=" + clientId + "&client_secret=" + clientSecret;
         HttpRequest request = HttpRequest.newBuilder(tokenEndpoint())
-            .header("Content-Type", "application/x-www-form-urlencoded")
-            .POST(HttpRequest.BodyPublishers.ofString(form, StandardCharsets.UTF_8))
-            .build();
+                .header("Content-Type", "application/x-www-form-urlencoded")
+                .POST(HttpRequest.BodyPublishers.ofString(form, StandardCharsets.UTF_8))
+                .build();
         HttpResponse<String> response = HTTP.send(request, HttpResponse.BodyHandlers.ofString());
 
         if (response.statusCode() != 200) {
@@ -140,26 +142,26 @@ public abstract class KeycloakIntegrationTestBase {
      * @return the exchanged token (with {@code act} claim populated)
      */
     protected static String exchangeToken(
-        String requestingClient, String requestingClientSecret, String subjectToken, String targetAudience)
-        throws IOException, InterruptedException {
+            String requestingClient, String requestingClientSecret, String subjectToken, String targetAudience)
+            throws IOException, InterruptedException {
 
         String tokenType = "urn:ietf:params:oauth:token-type:access_token";
         String grantType = "urn:ietf:params:oauth:grant-type:token-exchange";
         String actorToken = obtainToken(requestingClient, requestingClientSecret);
 
         String form = "grant_type=" + grantType
-            + "&client_id=" + requestingClient
-            + "&client_secret=" + requestingClientSecret
-            + "&subject_token=" + subjectToken
-            + "&subject_token_type=" + tokenType
-            + "&actor_token=" + actorToken
-            + "&actor_token_type=" + tokenType
-            + "&audience=" + targetAudience;
+                + "&client_id=" + requestingClient
+                + "&client_secret=" + requestingClientSecret
+                + "&subject_token=" + subjectToken
+                + "&subject_token_type=" + tokenType
+                + "&actor_token=" + actorToken
+                + "&actor_token_type=" + tokenType
+                + "&audience=" + targetAudience;
 
         HttpRequest request = HttpRequest.newBuilder(tokenEndpoint())
-            .header("Content-Type", "application/x-www-form-urlencoded")
-            .POST(HttpRequest.BodyPublishers.ofString(form, StandardCharsets.UTF_8))
-            .build();
+                .header("Content-Type", "application/x-www-form-urlencoded")
+                .POST(HttpRequest.BodyPublishers.ofString(form, StandardCharsets.UTF_8))
+                .build();
         HttpResponse<String> response = HTTP.send(request, HttpResponse.BodyHandlers.ofString());
 
         if (response.statusCode() != 200) {
