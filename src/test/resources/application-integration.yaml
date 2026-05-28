@@ -1,0 +1,19 @@
+# Integration-test profile. Tests can opt into specific configuration via
+# @TestPropertySource; this file provides safe defaults.
+zylos:
+  security:
+    # issuer-uri injected via @DynamicPropertySource in KeycloakIntegrationTestBase
+    # expected-audience defaults to zylos-internal-test (see base class)
+    clock-skew: 60s
+    actor-chains:
+      enabled: false
+    mdc:
+      enabled: true
+    # OPA disabled in starter integration tests; OPA-specific tests run separately
+    opa:
+    # endpoint left unset so the OPA auto-configuration doesn't activate
+
+logging:
+  level:
+    org.springframework.security: INFO
+    app.zylos.security: DEBUG
