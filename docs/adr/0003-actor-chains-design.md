@@ -4,6 +4,56 @@
 - **Date:** 2026-05-14
 - **Relates to:** ADR 0011 (zylos-infra-gitops; RFC 8693 token exchange)
 
+## Refinement 
+
+The original ADR below committed to full-chain validation as the **default**
+authorization posture for every protected endpoint — going beyond RFC 8693's
+normative model (which says only the direct actor governs access decisions).
+
+A retrospective during Sub-phase 1.2, informed by what large-scale platforms
+actually document (Uber's SPIFFE-actor model, the OAuth WG consensus, SPIFFE/
+SPIRE + OPA reference architectures), concluded that full-chain matching as a
+universal default exceeds industry norm. The **model** is adopted
+instead:
+
+- **Default:** endpoints authorize on a valid authenticated token (direct
+  actor + user identity). The actor chain is recorded — available for audit
+  logs and OPA input — but **not matched**. This is `chainSensitive: false`,
+  the default for any rule and for unmatched paths under the new
+  `ChainDefaults.standard()`.
+- **Opt-in hardening:** sensitive endpoints set `chainSensitive: true` and
+  declare `permittedChains`. The chain is then extracted and matched, denying
+  HTTP 403 on mismatch. This preserves the defense-in-depth value of chain
+  validation for the high-stakes subset without imposing it everywhere.
+
+### Sensitivity taxonomy (guidance)
+
+`chainSensitive: true` is recommended for: payment initiation, order
+finalization, refund issuance, seller-payout, admin endpoints, bulk PII
+export, and account-state mutations (email/password/phone change).
+
+`chainSensitive: false` (default) is appropriate for: product browsing, cart
+read/write, search, recommendation, and content endpoints.
+
+### Default change
+
+`ChainDefaults.standard()` (rejectIfNoPathMatch=false) replaces
+`ChainDefaults.strict()` as the substituted default when `actor-chains.yaml`
+omits a `defaults:` block. Services preferring allowlist semantics set
+`defaults.rejectIfNoPathMatch: true` explicitly (or use
+`ChainDefaults.strict()` programmatically).
+
+### Keycloak single-hop limitation
+
+The Zylos ActClaimMapper (zylos-infra-keycloak-extensions) populates only the
+immediate actor (single-hop). Multi-hop chains are a Phase 2 item. Phase 1
+`permittedChains` for chain-sensitive endpoints are therefore typically
+single-element. See zylos-infra-gitops ADR 0013.
+
+The decision flow, schema, and matching semantics documented below remain
+accurate; the only change is that they now execute **only for
+`chainSensitive: true` rules** rather than for every matched rule.
+
 ## Context
 
 Phase 1 requires services to validate the full delegation chain

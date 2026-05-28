@@ -7,20 +7,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- **Authorization model.** Actor-chain matching is now opt-in per
+  endpoint via `chainSensitive: true`. Non-sensitive endpoints (the default)
+  authorize on a valid authenticated token without chain matching.
+- `ChainDefaults.standard()` (permit-authenticated-by-default) replaces
+  `strict()` as the substituted default when `actor-chains.yaml` omits
+  `defaults:`. `strict()` remains available for allowlist semantics.
+- `PathCheckResult` refactored to a sealed interface with three cases
+  (`Immediate`, `AuthenticatedOnly`, `ChainEvaluation`).
+
 ### Added
 
-- Testcontainers-based integration tests against real Keycloak 26.6.1:
-  end-to-end JWT validation (`JwtIntegrationIT`) and actor-chain
-  authorization with real RFC 8693 token exchange (`ActorChainIntegrationIT`).
-- `KeycloakIntegrationTestBase` shared base class with singleton container
-  pattern and helpers for token acquisition + RFC 8693 exchange.
-- `@IntegrationTest` composite annotation (`@SpringBootTest` + `@Testcontainers`).
-- Test realm at `src/test/resources/keycloak/test-realm.json` with three
-  V2-token-exchange-enabled clients.
-- Failsafe plugin configuration to run `*IT.java` during `mvn verify`.
-- ADR 0006: Integration test scaffolding.
+- `EndpointChainRule.chainSensitive` flag (default false) with a 3-arg
+  convenience constructor preserving existing call sites.
+- `ActorChainEvaluator.evaluateAuthenticatedOnly` for non-chain-sensitive
+  authorization; new permit reason `authenticated`.
+- `ActorChainEvaluatorTest` covering the three-way path-check outcomes.
 
-### Earlier in this release cycle (already merged)
+### Notes
 
-- JWT validation core
-- Repo scaffolding 
+- ADR 0003 gains a refinement section documenting the rationale,
+  sensitivity taxonomy, and the default change.
