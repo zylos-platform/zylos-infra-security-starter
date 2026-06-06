@@ -29,6 +29,12 @@
       "sourceType": "app.zylos.security.properties.ZylosSecurityProperties"
     },
     {
+      "name": "zylos.security.jwk-set-uri",
+      "type": "java.lang.String",
+      "description": "Optional direct JWKS (certs) endpoint used only to fetch signing keys, decoupled from issuer-uri. When set, the decoder fetches keys from here and skips OIDC discovery; iss validation still uses issuer-uri. Use in split-horizon topologies where in-cluster pods reach Keycloak at a different URL than the public issuer (e.g. internal Service :8080 vs a port-less ingress iss). When omitted, OIDC discovery via issuer-uri is used.",
+      "sourceType": "app.zylos.security.properties.ZylosSecurityProperties"
+    },
+    {
       "name": "zylos.security.expected-audience",
       "type": "java.lang.String",
       "description": "The aud claim value this service identifies as. No multi-audience tolerance.",
