@@ -36,14 +36,14 @@ public final class UnknownKidRefreshingJwtDecoder implements JwtDecoder {
 
     private final JwtDecoder inner;
     private final Cache jwksCache;
-    private final String jwkSetUri;
+    private final String jwkSetCacheKey;
     private final Counter refreshCounter;
 
     public UnknownKidRefreshingJwtDecoder(
-            JwtDecoder inner, Cache jwksCache, String jwkSetUri, MeterRegistry meterRegistry) {
+            JwtDecoder inner, Cache jwksCache, String jwkSetCacheKey, MeterRegistry meterRegistry) {
         this.inner = inner;
         this.jwksCache = jwksCache;
-        this.jwkSetUri = jwkSetUri;
+        this.jwkSetCacheKey = jwkSetCacheKey;
         this.refreshCounter = Counter.builder("zylos_jwks_forced_refresh_total")
                 .description("Number of JWKS cache evictions triggered by an unknown kid")
                 .tag("decoder", "servlet")
@@ -76,7 +76,7 @@ public final class UnknownKidRefreshingJwtDecoder implements JwtDecoder {
             log.debug(
                     "Possible unknown kid detected ({}); evicting JWKS cache and retrying",
                     firstException.getMessage());
-            jwksCache.evict(jwkSetUri);
+            jwksCache.evict(jwkSetCacheKey);
             refreshCounter.increment();
 
             return inner.decode(token); // Don't recurse; the token is genuinely invalid.

@@ -32,6 +32,7 @@ import org.springframework.validation.annotation.Validated;
 @ConfigurationProperties(prefix = "zylos.security")
 public record ZylosSecurityProperties(
         @NotBlank String issuerUri,
+        @Nullable String jwkSetUri,
         @NotBlank String expectedAudience,
         @DefaultValue("30s") Duration clockSkew,
         @DefaultValue JwksCacheProperties jwksCache,

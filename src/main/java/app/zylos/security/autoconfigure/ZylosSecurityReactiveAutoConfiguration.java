@@ -57,12 +57,24 @@ public class ZylosSecurityReactiveAutoConfiguration {
             Cache jwksCache,
             OAuth2TokenValidator<Jwt> zylosReactiveJwtValidator,
             MeterRegistry meterRegistry) {
-        NimbusReactiveJwtDecoder nimbus = NimbusReactiveJwtDecoder.withIssuerLocation(properties.issuerUri())
-                .build();
+
+        NimbusReactiveJwtDecoder nimbus;
+        String networkUri;
+
+        if (properties.jwkSetUri() != null && !properties.jwkSetUri().isBlank()) {
+            nimbus = NimbusReactiveJwtDecoder.withJwkSetUri(properties.jwkSetUri())
+                    .build();
+            networkUri = properties.jwkSetUri();
+        } else {
+            nimbus = NimbusReactiveJwtDecoder.withIssuerLocation(properties.issuerUri())
+                    .build();
+            networkUri = properties.issuerUri();
+        }
+
         nimbus.setJwtValidator(zylosReactiveJwtValidator);
 
         ReactiveJwtDecoder withKidRefresh =
-                new UnknownKidRefreshingReactiveJwtDecoder(nimbus, jwksCache, properties.issuerUri(), meterRegistry);
+                new UnknownKidRefreshingReactiveJwtDecoder(nimbus, jwksCache, networkUri, meterRegistry);
         return new MeteredReactiveJwtDecoder(withKidRefresh, meterRegistry);
     }
 

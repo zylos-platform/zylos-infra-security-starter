@@ -25,14 +25,14 @@ public final class UnknownKidRefreshingReactiveJwtDecoder implements ReactiveJwt
 
     private final ReactiveJwtDecoder inner;
     private final Cache jwksCache;
-    private final String jwkSetUri;
+    private final String jwkSetCacheKey;
     private final Counter refreshCounter;
 
     public UnknownKidRefreshingReactiveJwtDecoder(
-            ReactiveJwtDecoder inner, Cache jwksCache, String jwkSetUri, MeterRegistry meterRegistry) {
+            ReactiveJwtDecoder inner, Cache jwksCache, String jwkSetCacheKey, MeterRegistry meterRegistry) {
         this.inner = inner;
         this.jwksCache = jwksCache;
-        this.jwkSetUri = jwkSetUri;
+        this.jwkSetCacheKey = jwkSetCacheKey;
         this.refreshCounter = Counter.builder("zylos_jwks_forced_refresh_total")
                 .description("Number of JWKS cache evictions triggered by an unknown kid")
                 .tag("decoder", "reactive")
@@ -60,7 +60,7 @@ public final class UnknownKidRefreshingReactiveJwtDecoder implements ReactiveJwt
             log.debug(
                     "Possible unknown kid detected ({}); evicting JWKS cache and retrying",
                     firstException.getMessage());
-            jwksCache.evict(jwkSetUri);
+            jwksCache.evict(jwkSetCacheKey);
             refreshCounter.increment();
 
             return inner.decode(token); // No further retry on second failure
