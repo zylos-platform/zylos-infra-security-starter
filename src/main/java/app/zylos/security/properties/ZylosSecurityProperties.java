@@ -20,6 +20,13 @@ import org.springframework.validation.annotation.Validated;
  *
  * @param issuerUri        exact {@code iss} value the realm publishes; tokens with a
  *                         different issuer are rejected with HTTP 401
+ * @param jwkSetUri        optional direct JWKS (certs) endpoint for fetching signing
+ *                         keys, decoupled from {@code issuerUri}. When set, the decoder
+ *                         fetches keys here and skips OIDC discovery; {@code iss} is
+ *                         still validated against {@code issuerUri}. Use in split-horizon
+ *                         topologies where in-cluster pods reach Keycloak at a different
+ *                         URL than the public issuer. When null, discovery via
+ *                         {@code issuerUri} is used.
  * @param expectedAudience the {@code aud} claim value this service identifies
  *                         as; tokens with any other audience are rejected
  * @param clockSkew        permissive window for {@code exp}/{@code nbf} validation;

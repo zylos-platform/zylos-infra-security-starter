@@ -39,6 +39,32 @@ zylos:
 
 The starter autoconfigures the rest.
 
+### Split-horizon networks (`jwk-set-uri`)
+
+`issuer-uri` does double duty: it is the literal `iss` value tokens are
+validated against, *and* (by default) the URL the decoder calls to download
+signing keys. In topologies where in-cluster pods reach Keycloak at a different
+address than the public issuer — e.g. pods must use the internal Service on
+`:8080` while tokens carry a port-less ingress `iss` — those two needs conflict.
+
+Set the optional `jwk-set-uri` to decouple network intent from validation intent:
+
+```yaml
+zylos:
+  security:
+    # Validation identity ONLY — the exact iss tokens must carry. Never dialed.
+    issuer-uri: http://keycloak.zylos.local/realms/zylos
+    # Network path ONLY — where keys are fetched. Skips OIDC discovery.
+    jwk-set-uri: http://keycloak.keycloak.svc.cluster.local:8080/realms/zylos/protocol/openid-connect/certs
+    expected-audience: zylos-internal-myservice
+```
+
+When `jwk-set-uri` is set, the decoder fetches keys directly and skips discovery
+(the `.well-known` call disappears); `iss` is still enforced against
+`issuer-uri`. When omitted, the starter falls back to OIDC discovery via
+`issuer-uri`. This removes any need for CoreDNS rewrites or bridge services to
+force port translation between internal and external Keycloak paths.
+
 ## Observability
 
 The starter publishes Micrometer metrics and populates the MDC for every
