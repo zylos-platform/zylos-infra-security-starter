@@ -61,14 +61,25 @@ public class ZylosSecurityServletAutoConfiguration {
             Cache jwksCache,
             OAuth2TokenValidator<Jwt> zylosJwtValidator,
             MeterRegistry meterRegistry) {
-        NimbusJwtDecoder nimbus = NimbusJwtDecoder.withIssuerLocation(properties.issuerUri())
-                .cache(jwksCache)
-                .build();
+
+        NimbusJwtDecoder nimbus;
+        String networkUri;
+
+        if (properties.jwkSetUri() != null && !properties.jwkSetUri().isBlank()) {
+            nimbus = NimbusJwtDecoder.withJwkSetUri(properties.jwkSetUri())
+                    .cache(jwksCache)
+                    .build();
+            networkUri = properties.jwkSetUri();
+        } else {
+            nimbus = NimbusJwtDecoder.withIssuerLocation(properties.issuerUri())
+                    .cache(jwksCache)
+                    .build();
+            networkUri = properties.issuerUri();
+        }
 
         nimbus.setJwtValidator(zylosJwtValidator);
 
-        JwtDecoder withKidRefresh =
-                new UnknownKidRefreshingJwtDecoder(nimbus, jwksCache, properties.issuerUri(), meterRegistry);
+        JwtDecoder withKidRefresh = new UnknownKidRefreshingJwtDecoder(nimbus, jwksCache, networkUri, meterRegistry);
         return new MeteredJwtDecoder(withKidRefresh, meterRegistry);
     }
 
