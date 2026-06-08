@@ -1,14 +1,18 @@
 package app.zylos.security.autoconfigure;
 
+import java.time.Duration;
+
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.*;
 import org.springframework.cache.Cache;
 import org.springframework.context.annotation.Bean;
+import org.springframework.http.client.reactive.ReactorClientHttpConnector;
 import org.springframework.security.oauth2.core.OAuth2TokenValidator;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.jwt.NimbusReactiveJwtDecoder;
 import org.springframework.security.oauth2.jwt.ReactiveJwtDecoder;
+import org.springframework.web.reactive.function.client.WebClient;
 
 import app.zylos.security.actor.ActorChainEvaluator;
 import app.zylos.security.actor.ActorChainReactiveAuthorizationManager;
@@ -20,6 +24,8 @@ import app.zylos.security.metrics.MeteredReactiveJwtDecoder;
 import app.zylos.security.properties.ZylosSecurityProperties;
 
 import io.micrometer.core.instrument.MeterRegistry;
+import reactor.netty.http.client.HttpClient;
+import reactor.netty.resources.ConnectionProvider;
 
 /**
  * Reactive-stack auto-configuration. Active when WebFlux is on the classpath
@@ -58,15 +64,27 @@ public class ZylosSecurityReactiveAutoConfiguration {
             OAuth2TokenValidator<Jwt> zylosReactiveJwtValidator,
             MeterRegistry meterRegistry) {
 
+        ConnectionProvider provider = ConnectionProvider.builder("zylos-jwk-pool")
+                .maxIdleTime(Duration.ofSeconds(10))
+                .maxLifeTime(Duration.ofSeconds(60))
+                .build();
+
+        HttpClient httpClient = HttpClient.create(provider);
+        WebClient customWebClient = WebClient.builder()
+                .clientConnector(new ReactorClientHttpConnector(httpClient))
+                .build();
+
         NimbusReactiveJwtDecoder nimbus;
         String networkUri;
 
         if (properties.jwkSetUri() != null && !properties.jwkSetUri().isBlank()) {
             nimbus = NimbusReactiveJwtDecoder.withJwkSetUri(properties.jwkSetUri())
+                    .webClient(customWebClient)
                     .build();
             networkUri = properties.jwkSetUri();
         } else {
             nimbus = NimbusReactiveJwtDecoder.withIssuerLocation(properties.issuerUri())
+                    .webClient(customWebClient)
                     .build();
             networkUri = properties.issuerUri();
         }
